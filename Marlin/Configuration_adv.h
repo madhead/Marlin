@@ -3458,7 +3458,7 @@
  * See https://marlinfw.org/docs/configuration/2.0.9/laser_spindle.html for more config details.
  */
 //#define SPINDLE_FEATURE
-#define LASER_FEATURE
+//#define LASER_FEATURE
 #if ANY(SPINDLE_FEATURE, LASER_FEATURE)
 
 #define EEPROM_PLR
