@@ -859,7 +859,7 @@ void idle(const bool no_stepper_sleep/*=false*/) {
   TERN_(HAS_BEEPER, buzzer.tick());
 
   // Handle UI input / draw events
-  TERN(DWIN_CREALITY_LCD, DWIN_Update(), ui.update());
+  TERN(DWIN_CREALITY_LCD, dwinUpdate(), ui.update());
 
   #if ENABLED(E3S1PRO_RTS)
     #if HAS_CUTTER
@@ -1656,7 +1656,7 @@ void setup() {
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
-    SETUP_RUN(DWIN_InitScreen());
+    SETUP_RUN(dwinInitScreen());
   #endif
 
   #if ENABLED(E3S1PRO_RTS)
