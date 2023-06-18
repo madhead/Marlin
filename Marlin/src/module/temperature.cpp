@@ -1338,7 +1338,7 @@ volatile bool Temperature::raw_temps_ready = false;
 
     // Heat to 200 degrees
     SERIAL_ECHOLNPGM(STR_MPC_HEATING_PAST_200);
-    TERN(DWIN_LCD_PROUI, LCD_ALERTMESSAGE(MSG_MPC_HEATING_PAST_200), LCD_MESSAGE(MSG_HEATING));
+    LCD_ALERTMESSAGE(MSG_MPC_HEATING_PAST_200);
 
     if (tuner.measure_heatup() != MPC_autotuner::MeasurementState::SUCCESS) return;
 
@@ -1643,7 +1643,7 @@ void Temperature::_temp_error(const heater_id_t heater_id, FSTR_P const serial_m
 
 void Temperature::maxtemp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
-    DWIN_Popup_Temperature(1);
+    dwinPopupTemperature(1);
   #endif
 
   #if ENABLED(E3S1PRO_RTS) && (HAS_HOTEND || HAS_HEATED_BED)
@@ -1656,7 +1656,7 @@ void Temperature::maxtemp_error(const heater_id_t heater_id) {
 
 void Temperature::mintemp_error(const heater_id_t heater_id) {
   #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
-    DWIN_Popup_Temperature(0);
+    dwinPopupTemperature(0);
   #endif
 
   #if ENABLED(E3S1PRO_RTS) && (HAS_HOTEND || HAS_HEATED_BED)
@@ -1893,7 +1893,7 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
           if (watch_hotend[e].check(degHotend(e)))  // Increased enough?
             start_watching_hotend(e);               // If temp reached, turn off elapsed check
           else {
-            TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+            TERN_(HAS_DWIN_E3V2_BASIC, dwinPopupTemperature(0));
 
             #if ENABLED(E3S1PRO_RTS)
               rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
@@ -1932,7 +1932,7 @@ void Temperature::mintemp_error(const heater_id_t heater_id) {
         if (watch_bed.check(degBed()))          // Increased enough?
           start_watching_bed();                 // If temp reached, turn off elapsed check
         else {
-          TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+          TERN_(HAS_DWIN_E3V2_BASIC, dwinPopupTemperature(0));
 
          #if ENABLED(E3S1PRO_RTS)
             rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
@@ -3345,12 +3345,12 @@ void Temperature::init() {
           change_page_font = 31;
         #endif      
 
-        TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+        TERN_(HAS_DWIN_E3V2_BASIC, dwinPopupTemperature(0));
         _temp_error(heater_id, FPSTR(str_t_thermal_runaway), GET_TEXT_F(MSG_THERMAL_RUNAWAY));
 
       #if ENABLED(THERMAL_PROTECTION_VARIANCE_MONITOR)
         case TRMalfunction:
-          TERN_(HAS_DWIN_E3V2_BASIC, DWIN_Popup_Temperature(0));
+          TERN_(HAS_DWIN_E3V2_BASIC, dwinPopupTemperature(0));
 
           #if ENABLED(E3S1PRO_RTS)
             rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
@@ -4564,7 +4564,7 @@ void Temperature::isr() {
       if (wait_for_heatup) {
         wait_for_heatup = false;
         #if HAS_DWIN_E3V2_BASIC
-          HMI_flag.heat_flag = 0;
+          hmiFlag.heat_flag = 0;
           duration_t elapsed = print_job_timer.duration();  // Print timer
           dwin_heat_time = elapsed.value;
         #elif ENABLED(E3S1PRO_RTS)
