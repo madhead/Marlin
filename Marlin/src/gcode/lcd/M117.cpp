@@ -42,7 +42,6 @@ void GcodeSuite::M117() {
       rtscheck.RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
       rtscheck.RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
     }
-
     if (parser.string_arg && parser.string_arg[0]) {
       char msg[20];
 
@@ -58,7 +57,7 @@ void GcodeSuite::M117() {
     }
   #else
     if (parser.string_arg && parser.string_arg[0])
-      ui.set_status(parser.string_arg, true);
+      ui.set_status_no_expire(parser.string_arg);
     else
       ui.reset_status();
   #endif
