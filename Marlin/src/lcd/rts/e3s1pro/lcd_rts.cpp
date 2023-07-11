@@ -34,10 +34,6 @@
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   #include "../../../feature/bedlevel/abl/bbl.h"
 #endif
-#if ENABLED(AUTO_BED_LEVELING_UBL)
-  #include "../../../feature/bedlevel/ubl/ubl.h"
-#endif
-
 #include "../../../feature/bedlevel/bedlevel.h"
 
 #if ENABLED(EEPROM_SETTINGS)
