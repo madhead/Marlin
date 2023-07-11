@@ -598,7 +598,7 @@ void unified_bed_leveling::G29() {
         #if ENABLED(E3S1PRO_RTS)
           if (touchscreen_requested_mesh == 1) {
             touchscreen_requested_mesh = 0;
-            queue.enqueue_one(F("G29 S1"));
+            queue.enqueue_one(F("G29 S0"));
           }
         #endif
 
@@ -782,13 +782,14 @@ void unified_bed_leveling::shift_mesh_height() {
 
     save_ubl_active_state_and_disable();  // No bed level correction so only raw data is obtained
     grid_count_t count = GRID_MAX_POINTS;
-
+    int16_t point_num_real;
     mesh_index_pair best;
     TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(best.pos, ExtUI::G29_START));
     do {
       if (do_ubl_mesh_map) display_map(param.T_map_type);
 
       const grid_count_t point_num = (GRID_MAX_POINTS - count) + 1;
+
       SERIAL_ECHOLNPGM("Probing mesh point ", point_num, "/", GRID_MAX_POINTS, ".");
       TERN_(HAS_STATUS_MESSAGE, ui.status_printf(0, F(S_FMT " %i/%i"), GET_TEXT(MSG_PROBING_POINT), point_num, int(GRID_MAX_POINTS)));
 
@@ -817,18 +818,24 @@ void unified_bed_leveling::shift_mesh_height() {
           ExtUI::onMeshUpdate(best.pos, ExtUI::G29_POINT_FINISH);
           ExtUI::onMeshUpdate(best.pos, measured_z);
         #endif
-      }
-      SERIAL_FLUSH(); // Prevent host M105 buffer overrun.
-
-    #if ENABLED(E3S1PRO_RTS)
-      if (best.pos.x >= 0) {
+        #if ENABLED(E3S1PRO_RTS)
+          point_num_real = best.pos.x + best.pos.y * 5 + 1;
+          if(old_leveling == 1){
           const uint16_t percent = 100 / GRID_MAX_POINTS * (GRID_MAX_POINTS - (count - 1));
           rtscheck.RTS_SndData((uint16_t) (percent / 2) , AUTO_BED_LEVEL_TITLE_VP);
           rtscheck.RTS_SndData(percent, AUTO_LEVELING_PERCENT_DATA_VP);
           rtscheck.RTS_SndData(ExchangePageBase + 26, ExchangepageAddr);
           change_page_font = 26;
+          }else{     
+          rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
+          rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
+          rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
+          rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+          change_page_font = 81;          
+          }       
+          #endif
       }
-    #endif
+      SERIAL_FLUSH(); // Prevent host M105 buffer overrun.
 
     } while (best.pos.x >= 0 && --count);
 

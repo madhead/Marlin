@@ -34,6 +34,10 @@
 #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
   #include "../../../feature/bedlevel/abl/bbl.h"
 #endif
+#if ENABLED(AUTO_BED_LEVELING_UBL)
+  #include "../../../feature/bedlevel/ubl/ubl.h"
+#endif
+
 #include "../../../feature/bedlevel/bedlevel.h"
 
 #if ENABLED(EEPROM_SETTINGS)
@@ -511,7 +515,7 @@ void RTSSHOW::RTS_Init(void)
     RTS_SndData(0, DOWNLOAD_PREVIEW_VP);
   #endif
 
-  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+  //#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     bool zig = false;
     int8_t inStart, inStop, inInc, showcount;
     showcount = 0;
@@ -535,13 +539,13 @@ void RTSSHOW::RTS_Init(void)
       zig ^= true;
       for (int x = inStart; x != inStop; x += inInc)
       {
-        //SERIAL_ECHOLNPGM("value: ", bedlevel.z_values[x][y] * 1000);
+        SERIAL_ECHOLNPGM("value: ", bedlevel.z_values[x][y] * 1000);
         RTS_SndData(bedlevel.z_values[x][y] * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + showcount * 2);
         showcount++;
       }
     }
     queue.enqueue_now_P(PSTR("M420 S1"));
-  #endif
+  //#endif
 
   /***************transmit Fan speed to screen*****************/
   // turn off fans
@@ -1223,7 +1227,8 @@ void RTSSHOW::RTS_HandleData(void)
           touchscreen_requested_mesh = 1;
           queue.enqueue_one_P(PSTR("G29 P1 T"));
           // queue.enqueue_one_P(PSTR("G29 P3"));
-          // queue.enqueue_one_P(PSTR("G29 S1"));
+          queue.enqueue_one_P(PSTR("G29 S0"));
+          queue.enqueue_one_P(PSTR("M500"));          
         #endif
         RTS_SndData(0, MOTOR_FREE_ICON_VP);        
       }
@@ -2476,7 +2481,7 @@ void RTSSHOW::RTS_HandleData(void)
             touchscreen_requested_mesh = 1;
             queue.enqueue_one_P(PSTR("G29 P1 T"));
             // queue.enqueue_one_P(PSTR("G29 P3"));
-            // queue.enqueue_one_P(PSTR("G29 S1"));
+            queue.enqueue_one_P(PSTR("G29 S0"));
           #endif
         #endif
       }  
