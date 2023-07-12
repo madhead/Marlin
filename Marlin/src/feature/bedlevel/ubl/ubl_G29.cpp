@@ -822,19 +822,25 @@ void unified_bed_leveling::shift_mesh_height() {
           ExtUI::onMeshUpdate(best.pos, measured_z);
         #endif
         #if ENABLED(E3S1PRO_RTS)
-          point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
           if(old_leveling == 1){
-          const uint16_t percent = 100 / GRID_MAX_POINTS * (GRID_MAX_POINTS - (count - 1));
-          rtscheck.RTS_SndData((uint16_t) (percent / 2) , AUTO_BED_LEVEL_TITLE_VP);
-          rtscheck.RTS_SndData(percent, AUTO_LEVELING_PERCENT_DATA_VP);
-          rtscheck.RTS_SndData(ExchangePageBase + 26, ExchangepageAddr);
-          change_page_font = 26;
-          }else{     
-          rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
-          rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
-          rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
-          rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-          change_page_font = 81;          
+            const uint16_t percent = 100 / GRID_MAX_POINTS * (GRID_MAX_POINTS - (count - 1));
+            rtscheck.RTS_SndData((uint16_t) (percent / 2) , AUTO_BED_LEVEL_TITLE_VP);
+            rtscheck.RTS_SndData(percent, AUTO_LEVELING_PERCENT_DATA_VP);
+            rtscheck.RTS_SndData(ExchangePageBase + 26, ExchangepageAddr);
+            change_page_font = 26;
+          }else{
+            if (best.pos.y % 2 == 0) {
+              // Traverse the row from left to right
+              point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
+            } else {
+              // Traverse the row from right to left
+              point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
+            }               
+            rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
+            rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
+            rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
+            rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+            change_page_font = 81;
           }       
           #endif
       }
