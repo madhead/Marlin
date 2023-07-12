@@ -819,7 +819,7 @@ void unified_bed_leveling::shift_mesh_height() {
           ExtUI::onMeshUpdate(best.pos, measured_z);
         #endif
         #if ENABLED(E3S1PRO_RTS)
-          point_num_real = best.pos.x + best.pos.y * 5 + 1;
+          point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
           if(old_leveling == 1){
           const uint16_t percent = 100 / GRID_MAX_POINTS * (GRID_MAX_POINTS - (count - 1));
           rtscheck.RTS_SndData((uint16_t) (percent / 2) , AUTO_BED_LEVEL_TITLE_VP);

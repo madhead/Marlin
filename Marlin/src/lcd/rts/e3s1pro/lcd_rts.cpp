@@ -511,7 +511,7 @@ void RTSSHOW::RTS_Init(void)
     RTS_SndData(0, DOWNLOAD_PREVIEW_VP);
   #endif
 
-  //#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+  #if ANY(AUTO_BED_LEVELING_BILINEAR, AUTO_BED_LEVELING_UBL)
     bool zig = false;
     int8_t inStart, inStop, inInc, showcount;
     showcount = 0;
@@ -540,8 +540,10 @@ void RTSSHOW::RTS_Init(void)
         showcount++;
       }
     }
+  #endif
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     queue.enqueue_now_P(PSTR("M420 S1"));
-  //#endif
+  #endif
 
   /***************transmit Fan speed to screen*****************/
   // turn off fans
@@ -2476,8 +2478,9 @@ void RTSSHOW::RTS_HandleData(void)
           #else
             touchscreen_requested_mesh = 1;
             queue.enqueue_one_P(PSTR("G29 P1 T"));
-            // queue.enqueue_one_P(PSTR("G29 P3"));
             queue.enqueue_one_P(PSTR("G29 S0"));
+            queue.enqueue_one_P(PSTR("M420 S1"));
+            queue.enqueue_one_P(PSTR("M500"));
           #endif
         #endif
       }  
