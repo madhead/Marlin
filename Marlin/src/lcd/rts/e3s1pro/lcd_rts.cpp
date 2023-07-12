@@ -565,7 +565,7 @@ void RTSSHOW::RTS_Init(void)
   RTS_SndData(lang == 1 ? CORP_WEBSITE_C : CORP_WEBSITE_E, WEBSITE_ABOUT_TEXT_VP);
 
   RTS_SndData(recovery.enabled ? 0 : 1, POWERCONTINUE_CONTROL_ICON_VP);
-  RTS_SndData(runout.enabled ? 0 : 1, FILAMENT_CONTROL_ICON_VP);
+  RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
 
   if (g_soundSetOffOn == 2) {
     RTS_SndData(DC_SOUND_SET_OFF, DC_SOUND_SET_DDR);
@@ -1366,12 +1366,12 @@ void RTSSHOW::RTS_HandleData(void)
        {
          if(runout.enabled)
          {
-           RTS_SndData(1, FILAMENT_CONTROL_ICON_VP);
+           RTS_SndData(102, FILAMENT_CONTROL_ICON_VP);
            runout.enabled = false;
          }
          else
          {
-           RTS_SndData(0, FILAMENT_CONTROL_ICON_VP);
+           RTS_SndData(101, FILAMENT_CONTROL_ICON_VP);
            runout.enabled = true;
          }
         settings.save();         
