@@ -544,7 +544,7 @@ void RTSSHOW::RTS_Init(void)
       zig ^= true;
       for (int x = inStart; x != inStop; x += inInc)
       {
-        SERIAL_ECHOLNPGM("value: ", bedlevel.z_values[x][y] * 1000);
+        //SERIAL_ECHOLNPGM("value: ", bedlevel.z_values[x][y] * 1000);
         RTS_SndData(bedlevel.z_values[x][y] * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + showcount * 2);
         showcount++;
       }
@@ -3533,8 +3533,9 @@ void RTSSHOW::RTS_HandleData(void)
 
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
         SERIAL_ECHO_MSG("home_offset_x_temp\n", home_offset_x_temp);   
-      #endif 
         SERIAL_ECHOLNPGM("home_offset_x_temp enterkey: ", home_offset_x_temp);
+      #endif 
+        
         //SERIAL_ECHOLNPGM("x_min_pos_eeprom_temp enterkey: ", x_min_pos_eeprom_temp);         
         //BL24CXX::writeOneByte(x_min_pos_eeprom, x_min_pos_eeprom_temp);               
         //if (x_min_pos_eeprom_temp == 1) {
@@ -3560,8 +3561,8 @@ void RTSSHOW::RTS_HandleData(void)
       home_offset.y = home_offset_y_temp;     
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
         SERIAL_ECHO_MSG("home_offset_y_temp\n", home_offset_y_temp);             
-      #endif 
         SERIAL_ECHOLNPGM("home_offset_y_temp enterkey: ", home_offset_y_temp);
+      #endif 
         //SERIAL_ECHOLNPGM("y_min_pos_eeprom_temp enterkey: ", y_min_pos_eeprom_temp);                 
         //BL24CXX::writeOneByte(y_min_pos_eeprom, y_min_pos_eeprom_temp);
         //if (y_min_pos_eeprom_temp == 1) {
