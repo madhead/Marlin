@@ -118,14 +118,14 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1 Pro"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v001-byTT"
+    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v002-byTT"
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v002-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "UI20" 
@@ -160,14 +160,14 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1 Plus"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v001-byTT"
+    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v002-byTT"
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v002-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT"
@@ -202,14 +202,14 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v001-byTT"
+    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v002-byTT"
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v001-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v002-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT" 
@@ -1995,8 +1995,8 @@
   #define Y_BED_SIZE 235
 
   // Travel limits (mm) after homing, corresponding to endstop positions.
-  #define X_MIN_POS -2
-  #define Y_MIN_POS -2
+  #define X_MIN_POS 0
+  #define Y_MIN_POS 0
   #define Z_MIN_POS 0
   #define X_MAX_POS X_BED_SIZE + 6
   #define Y_MAX_POS Y_BED_SIZE

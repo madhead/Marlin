@@ -104,8 +104,10 @@ float x_zeta = 0.0;
 float y_zeta = 0.0;
 #endif
 
-float x_min_pos_eeprom;
-float y_min_pos_eeprom;
+//uint8_t x_min_pos_eeprom;
+//uint8_t y_min_pos_eeprom;
+//int x_min_pos_eeprom_temp;
+//int y_min_pos_eeprom_temp;
 
 int power_off_type_yes = 0;
 int old_leveling = 0;
@@ -403,8 +405,8 @@ void RTSSHOW::RTS_Init(void)
   AxisUnitMode = 1;
   lang = language_change_font;
 
-  //x_min_pos_eeprom = BL24CXX::readOneByte(x_min_pos_eeprom);
-  //y_min_pos_eeprom = BL24CXX::readOneByte(y_min_pos_eeprom);
+  //x_min_pos_eeprom_temp = BL24CXX::readOneByte(x_min_pos_eeprom);
+  //y_min_pos_eeprom_temp = BL24CXX::readOneByte(y_min_pos_eeprom);
 
   #if ENABLED(POWER_LOSS_RECOVERY)
     if (!IS_SD_INSERTED()) { delay(500); card.mount(); }
@@ -493,17 +495,24 @@ void RTSSHOW::RTS_Init(void)
   //RTS_SndData(workspace_offset.x * 100, HOME_X_OFFSET_VP);
   //RTS_SndData(workspace_offset.y * 100, HOME_Y_OFFSET_VP);
 
-  //RTS_SndData(X_MIN_POS * 100, X_MIN_POS_VP);
-  //RTS_SndData(Y_MIN_POS * 100, Y_MIN_POS_VP);
+  RTS_SndData(X_MIN_POS * 100, X_MIN_POS_VP);
+  RTS_SndData(Y_MIN_POS * 100, Y_MIN_POS_VP);
 
-  //RTS_SndData(x_min_pos_eeprom * 100, X_MIN_POS_EEPROM_VP);
-  //RTS_SndData(y_min_pos_eeprom * 100, Y_MIN_POS_EEPROM_VP);
+  //RTS_SndData(x_min_pos_eeprom, X_MIN_POS_EEPROM_VP);
+  //RTS_SndData(y_min_pos_eeprom, Y_MIN_POS_EEPROM_VP);
+
+  //if (x_min_pos_eeprom_temp == 1) {
+  //  RTS_SndData(101, X_MIN_POS_EEPROM_VP);
+  //}
+  //if (y_min_pos_eeprom_temp == 1) {
+  //  RTS_SndData(101, Y_MIN_POS_EEPROM_VP);
+  //}  
 
   //RTS_SndData(X_BED_SIZE * 100, X_BEDSIZE_VP);
   //RTS_SndData(Y_BED_SIZE * 100, Y_BEDSIZE_VP);
 
-  //RTS_SndData(home_offset.x * 100, HOME_X_OFFSET_NEW_VP);
-  //RTS_SndData(home_offset.y * 100, HOME_Y_OFFSET_NEW_VP);
+  RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
+  RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);
 
   RTS_SndData(StartSoundSet, 0);
   #if ENABLED(GCODE_PREVIEW_ENABLED)
@@ -1249,6 +1258,14 @@ void RTSSHOW::RTS_HandleData(void)
             gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, true);
           }        
         #endif
+        //SERIAL_ECHOLNPGM("x_min_pos_eeprom_temp main: ", x_min_pos_eeprom_temp);
+        //if (x_min_pos_eeprom_temp == 1) {
+        //  RTS_SndData(101, X_MIN_POS_EEPROM_VP);
+        //}    
+        //SERIAL_ECHOLNPGM("y_min_pos_eeprom_temp main: ", y_min_pos_eeprom_temp);
+        //if (y_min_pos_eeprom_temp == 1) {
+        //  RTS_SndData(101, Y_MIN_POS_EEPROM_VP);
+        //}          
         change_page_font = 1;
       }
       else if(recdat.data[0] == 9)
@@ -2144,262 +2161,338 @@ void RTSSHOW::RTS_HandleData(void)
       else if(recdat.data[0] == 5)
       {
         char cmd[23];
-
         // Assitant Level ,  Centre 1
-        if(!planner.has_blocks_queued())
-        {
-          waitway = 4;
+        if(axes_should_home()) {
           if (bltouch_tramming == 0){
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          #if ENABLED(ENDER_3S1_PRO) || ENABLED(ENDER_3S1)
-          sprintf_P(cmd, "G1 X117.5 Y117.5 F2000");
-          #elif ENABLED(ENDER_3S1_PLUS)
-          sprintf_P(cmd, "G1 X155 Y157.5 F2000");
-          #else
-          sprintf_P(cmd, "G1 X%d Y%d F2000", manual_level_5position[0][0],manual_level_5position[0][1]);
-          #endif          
-          queue.enqueue_now_P(cmd);
-          #if ENABLED(ENDER_3S1_PRO) || ENABLED(ENDER_3S1)
-          rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)117.5, AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)117.5, AXIS_Y_COORD_VP);
-          #elif ENABLED(ENDER_3S1_PLUS)
-          rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)155, AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)157.5, AXIS_Y_COORD_VP);
-          #else
-          rtscheck.RTS_SndData(10 * manual_level_5position[0][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[0][1], AXIS_Y_COORD_VP);
-          #endif
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+          waitway = 16;
           }
           if (bltouch_tramming == 1){
-            #if ENABLED(ENDER_3S1_PRO) || ENABLED(ENDER_3S1)
-              queue.enqueue_now_P(PSTR("G30 X117.5 Y117.5")); 
-            #elif ENABLED(ENDER_3S1_PLUS)
-              queue.enqueue_now_P(PSTR("G30 X155 Y157.5")); 
-            #else
-              sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[0][0],manual_level_5position[0][1]);
-              queue.enqueue_now_P(cmd);              
-            #endif        
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
+          waitway = 17;
+          }          
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{
+          if(!planner.has_blocks_queued())
+          {
+            waitway = 4;
+            if (bltouch_tramming == 0){
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F2000", (X_BED_SIZE/2),(Y_BED_SIZE/2));                
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)(X_BED_SIZE/2), AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData((unsigned char)10 * (unsigned char)(Y_BED_SIZE/2), AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){
+              sprintf_P(cmd, "G30 X%d Y%d", (X_BED_SIZE/2),(Y_BED_SIZE/2));                 
+              queue.enqueue_now_P(cmd);
+              RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }
+            waitway = 0;
           }
-          waitway = 0;
-        }
+        }        
       }
       else if (recdat.data[0] == 6)
       {
         char cmd[20];
         // Assitant Level , Front Left 2
-        if(!planner.has_blocks_queued())
-        {
-
-          waitway = 4;
-          if (bltouch_tramming == 0){            
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));        
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[1][0],manual_level_5position[1][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[1][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[1][1], AXIS_Y_COORD_VP);
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+        if(axes_should_home()) {
+          if (bltouch_tramming == 0){
+          waitway = 16;
           }
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[1][0],manual_level_5position[1][1]);
-          queue.enqueue_now_P(cmd);         
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
+          if (bltouch_tramming == 1){
+          waitway = 17;
           }
-          waitway = 0;
-        }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{     
+          if(!planner.has_blocks_queued())
+          {
+            waitway = 4;
+            if (bltouch_tramming == 0){            
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));        
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[1][0],manual_level_5position[1][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[1][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[1][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[1][0],manual_level_5position[1][1]);
+            queue.enqueue_now_P(cmd);         
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }
+            waitway = 0;
+          }
+        }                
       }
       else if (recdat.data[0] == 7)
       {
         char cmd[20];
         // Assitant Level , Front Right 3
-        if(!planner.has_blocks_queued())
-        {
-          waitway = 4;
-          if (bltouch_tramming == 0){          
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[2][0],manual_level_5position[2][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[2][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[2][1], AXIS_Y_COORD_VP);
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+        if(axes_should_home()) {
+          if (bltouch_tramming == 0){
+          waitway = 16;
           }
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[2][0],manual_level_5position[2][1]);
-          queue.enqueue_now_P(cmd);         
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
+          if (bltouch_tramming == 1){
+          waitway = 17;
           }
-          waitway = 0;
-        }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{     
+          if(!planner.has_blocks_queued())
+          {
+            waitway = 4;
+            if (bltouch_tramming == 0){          
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[2][0],manual_level_5position[2][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[2][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[2][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[2][0],manual_level_5position[2][1]);
+            queue.enqueue_now_P(cmd);         
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }
+            waitway = 0;
+          }
+        }                
       }
       else if (recdat.data[0] == 8)
       {
         char cmd[20];
         // Assitant Level , Back Right 4
-        if(!planner.has_blocks_queued())
-        {
-          waitway = 4;
-          if (bltouch_tramming == 0){          
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[3][0],manual_level_5position[3][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[3][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[3][1], AXIS_Y_COORD_VP);
+        if(axes_should_home()) {
+          if (bltouch_tramming == 0){
+          waitway = 16;
+          }
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{       
+          if(!planner.has_blocks_queued())
+          {
+            waitway = 4;
+            if (bltouch_tramming == 0){          
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[3][0],manual_level_5position[3][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[3][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[3][1], AXIS_Y_COORD_VP);
 
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[3][0],manual_level_5position[3][1]);
+            queue.enqueue_now_P(cmd);         
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }
+            waitway = 0;
           }
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[3][0],manual_level_5position[3][1]);
-          queue.enqueue_now_P(cmd);         
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }
-          waitway = 0;
-        }
+        }                
       }
       else if (recdat.data[0] == 9)
       {
         char cmd[20];
         // Assitant Level , Back Left 5
-        if(!planner.has_blocks_queued())
-        {
- 
-          waitway = 4;
-          if (bltouch_tramming == 0){         
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[4][0],manual_level_5position[4][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[4][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[4][1], AXIS_Y_COORD_VP);
-
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+        if(axes_should_home()) {
+          if (bltouch_tramming == 0){
+          waitway = 16;
           }
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[4][0],manual_level_5position[4][1]);
-          queue.enqueue_now_P(cmd);        
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }  
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{
+          if(!planner.has_blocks_queued())
+          {
+            waitway = 4;
+            if (bltouch_tramming == 0){         
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[4][0],manual_level_5position[4][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[4][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[4][1], AXIS_Y_COORD_VP);
 
-          waitway = 0;
-        }
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[4][0],manual_level_5position[4][1]);
+            queue.enqueue_now_P(cmd);        
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }  
+            waitway = 0;
+          }
+        }                
       }
       else if (recdat.data[0] == 0x0B)
       {
         char cmd[20];
         // Assitant Level , Back Left 6
-        if(!planner.has_blocks_queued())
-        {
-
+        if(axes_should_home()) {
           if (bltouch_tramming == 0){
-          waitway = 4;
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[5][0],manual_level_5position[5][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[5][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[5][1], AXIS_Y_COORD_VP);
-
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+          waitway = 16;
           }
-
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[5][0],manual_level_5position[5][1]);
-          queue.enqueue_now_P(cmd);         
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }  
-          waitway = 0;
-        }
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{     
+          if(!planner.has_blocks_queued())
+          {
+            if (bltouch_tramming == 0){
+            waitway = 4;
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[5][0],manual_level_5position[5][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[5][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[5][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[5][0],manual_level_5position[5][1]);
+            queue.enqueue_now_P(cmd);         
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }  
+            waitway = 0;
+          }
+        }                
       }
       else if (recdat.data[0] == 0x0C)
       {
         char cmd[20];
         // Assitant Level , Back Left 7
-        if(!planner.has_blocks_queued())
-        {
+        if(axes_should_home()) {
           if (bltouch_tramming == 0){
-          waitway = 4;
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[6][0],manual_level_5position[6][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[6][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[6][1], AXIS_Y_COORD_VP);
-
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+          waitway = 16;
           }
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{      
+          if(!planner.has_blocks_queued())
+          {
+            if (bltouch_tramming == 0){
+            waitway = 4;
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[6][0],manual_level_5position[6][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[6][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[6][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
 
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[6][0],manual_level_5position[6][1]);
-          queue.enqueue_now_P(cmd);      
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }  
-          waitway = 0;
-        }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[6][0],manual_level_5position[6][1]);
+            queue.enqueue_now_P(cmd);      
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }  
+            waitway = 0;
+          }
+        }                
       }
       else if (recdat.data[0] == 0x0D)
       {
         char cmd[20];
         // Assitant Level , Back Left 8
-        if(!planner.has_blocks_queued())
-        {
+        if(axes_should_home()) {
           if (bltouch_tramming == 0){
-          waitway = 4;
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[7][0],manual_level_5position[7][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[7][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[7][1], AXIS_Y_COORD_VP);
-
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+          waitway = 16;
           }
-
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[7][0],manual_level_5position[7][1]);
-          queue.enqueue_now_P(cmd);         
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }           
-          waitway = 0;          
-        }
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{     
+          if(!planner.has_blocks_queued())
+          {
+            if (bltouch_tramming == 0){
+            waitway = 4;
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[7][0],manual_level_5position[7][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[7][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[7][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[7][0],manual_level_5position[7][1]);
+            queue.enqueue_now_P(cmd);         
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }           
+            waitway = 0;          
+          }
+        }                
       }
       else if (recdat.data[0] == 0x0E)
       {
         char cmd[20];
         // Assitant Level , Back Left 9
-        if(!planner.has_blocks_queued())
-        {
+        if(axes_should_home()) {
           if (bltouch_tramming == 0){
-          waitway = 4;
-          queue.enqueue_now_P(PSTR("G1 F600 Z3"));
-          sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[8][0],manual_level_5position[8][1]);
-          queue.enqueue_now_P(cmd);
-          rtscheck.RTS_SndData(10 * manual_level_5position[8][0], AXIS_X_COORD_VP);
-          rtscheck.RTS_SndData(10 * manual_level_5position[8][1], AXIS_Y_COORD_VP);
-
-          queue.enqueue_now_P(PSTR("G1 F600 Z0"));
-          rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+          waitway = 16;
           }
-
-          if (bltouch_tramming == 1){         
-          sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[8][0],manual_level_5position[8][1]);
-          queue.enqueue_now_P(cmd);       
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
-          }          
-          waitway = 0;
-        }
+          if (bltouch_tramming == 1){
+          waitway = 17;
+          }
+          queue.enqueue_one_P(PSTR("G28"));
+          RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
+          change_page_font = 40;
+        }else{    
+          if(!planner.has_blocks_queued())
+          {
+            if (bltouch_tramming == 0){
+            waitway = 4;
+            queue.enqueue_now_P(PSTR("G1 F600 Z3"));
+            sprintf_P(cmd, "G1 X%d Y%d F3000", manual_level_5position[8][0],manual_level_5position[8][1]);
+            queue.enqueue_now_P(cmd);
+            rtscheck.RTS_SndData(10 * manual_level_5position[8][0], AXIS_X_COORD_VP);
+            rtscheck.RTS_SndData(10 * manual_level_5position[8][1], AXIS_Y_COORD_VP);
+            queue.enqueue_now_P(PSTR("G1 F600 Z0"));
+            rtscheck.RTS_SndData(10 * 0, AXIS_Z_COORD_VP);
+            }
+            if (bltouch_tramming == 1){         
+            sprintf_P(cmd, "G30 X%d Y%d", manual_level_5position[8][0],manual_level_5position[8][1]);
+            queue.enqueue_now_P(cmd);       
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
+            }          
+            waitway = 0;
+          }
+        }                
       }
       else if(recdat.data[0] == 0x0A)
       {
@@ -2498,7 +2591,6 @@ void RTSSHOW::RTS_HandleData(void)
           RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
           change_page_font = 81;
         }
-
         rtscheck.RTS_SndData(AutoHomeFirstPoint, AUTO_BED_LEVEL_CUR_POINT_VP);
         RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);                  
         rtscheck.RTS_SndData(GRID_MAX_POINTS_X * GRID_MAX_POINTS_Y, AUTO_BED_LEVEL_END_POINT);      
@@ -2531,18 +2623,12 @@ void RTSSHOW::RTS_HandleData(void)
             sprintf_P(cmd9, "G30 X%d Y%d", manual_level_5position[4][0],manual_level_5position[4][1]);
             queue.enqueue_now_P(cmd9);
             // Finally center
-
-            #if ENABLED(ENDER_3S1_PRO) || ENABLED(ENDER_3S1)
-              queue.enqueue_now_P(PSTR("G30 X117.5 Y117.5")); 
-            #elif ENABLED(ENDER_3S1_PLUS)
-              queue.enqueue_now_P(PSTR("G30 X155 Y157")); 
-            #else     
-              char cmd1[20];       
-              sprintf_P(cmd1, "G30 X%d Y%d", manual_level_5position[0][0],manual_level_5position[0][1]);
-              queue.enqueue_now_P(cmd1);
-            #endif          
-          RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
-          change_page_font = 89;                      
+            char cmd10[20];
+            sprintf_P(cmd10, "G30 X%d Y%d", (X_BED_SIZE/2),(Y_BED_SIZE/2)); 
+            queue.enqueue_now_P(cmd10);
+ 
+            RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
+            change_page_font = 89;                      
           }
       }
       RTS_SndData(0, MOTOR_FREE_ICON_VP);
@@ -2664,7 +2750,39 @@ void RTSSHOW::RTS_HandleData(void)
         change_page_font = 89; 
         }
         Update_Time_Value = 0;
-      }            
+      }
+      else if(recdat.data[0] == 168)
+      { // 00A8 // 00A1 before Offsetrouting
+        RTS_SndData(ExchangePageBase + 92, ExchangepageAddr);
+        change_page_font = 92;
+      }
+      else if(recdat.data[0] == 169)
+      { // 00A9 // Home Offsets
+        RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
+        RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);        
+        RTS_SndData(ExchangePageBase + 93, ExchangepageAddr);
+        change_page_font = 93;
+      } 
+      else if(recdat.data[0] == 177)
+      { // 00B1 Home X
+        queue.enqueue_now_P(PSTR("G28"));
+        queue.enqueue_now_P(PSTR("G28 X"));
+        queue.enqueue_now_P(PSTR("G1 Z5 F1000"));        
+        RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
+        RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP); 
+        RTS_SndData(ExchangePageBase + 93, ExchangepageAddr);
+        change_page_font = 93; 
+      }  
+      else if(recdat.data[0] == 178)
+      { // 00B2 Home y
+        queue.enqueue_now_P(PSTR("G28"));      
+        queue.enqueue_now_P(PSTR("G28 Y"));
+        queue.enqueue_now_P(PSTR("G1 Z5 F1000"));                
+        RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
+        RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);         
+        RTS_SndData(ExchangePageBase + 93, ExchangepageAddr);
+        change_page_font = 93; 
+      }                                   
       break;
 
     case XaxismoveKey:
@@ -3372,12 +3490,14 @@ void RTSSHOW::RTS_HandleData(void)
       x_frequency = ((float)recdat.data[0])/100;
       stepper.set_shaping_frequency(X_AXIS, x_frequency);      
       RTS_SndData(stepper.get_shaping_frequency(X_AXIS) * 100, SHAPING_X_FREQUENCY_VP);
+      settings.save();
       break;
 
     case YShapingFreqsetEnterKey:
       y_frequency = ((float)recdat.data[0])/100;
       stepper.set_shaping_frequency(Y_AXIS, y_frequency);      
       RTS_SndData(stepper.get_shaping_frequency(Y_AXIS) * 100, SHAPING_Y_FREQUENCY_VP);
+      settings.save();      
       break;
 
     case XShapingZetasetEnterKey:  
@@ -3397,43 +3517,57 @@ void RTSSHOW::RTS_HandleData(void)
       break;   
 
     case XMinPosEepromEnterKey:
-      float x_min_pos_eeprom_temp;
+      float home_offset_x_temp;
+      //x_min_pos_eeprom_temp = 1;      
       if(recdat.data[0] >= 32768)
       {
-        x_min_pos_eeprom_temp = ((float)recdat.data[0] - 65536) / 100;
-        x_min_pos_eeprom_temp -= 0.001;
+        home_offset_x_temp = ((float)recdat.data[0] - 65536) / 10;
+        home_offset_x_temp -= 0.001;
       }
       else
       {
-        x_min_pos_eeprom_temp = ((float)recdat.data[0])/100;;
-        x_min_pos_eeprom_temp += 0.001;
+        home_offset_x_temp = ((float)recdat.data[0])/10;;
+        home_offset_x_temp += 0.001;
       }
-      x_min_pos_eeprom = x_min_pos_eeprom_temp;
+      home_offset.x = home_offset_x_temp;
+
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("XMinPosEepromEnterKey\n", x_min_pos_eeprom_temp);   
+        SERIAL_ECHO_MSG("home_offset_x_temp\n", home_offset_x_temp);   
       #endif 
-      //BL24CXX::writeOneByte(10, x_min_pos_eeprom);
-      //RTS_SndData(x_min_pos_eeprom_temp * 100, X_MIN_POS_EEPROM_VP);
+        SERIAL_ECHOLNPGM("home_offset_x_temp enterkey: ", home_offset_x_temp);
+        //SERIAL_ECHOLNPGM("x_min_pos_eeprom_temp enterkey: ", x_min_pos_eeprom_temp);         
+        //BL24CXX::writeOneByte(x_min_pos_eeprom, x_min_pos_eeprom_temp);               
+        //if (x_min_pos_eeprom_temp == 1) {
+        //  RTS_SndData(101, X_MIN_POS_EEPROM_VP);
+        //}        
+      RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
       settings.save();
       break;
       
     case YMinPosEepromEnterKey:
-      float y_min_pos_eeprom_temp;
+      float home_offset_y_temp;
+      //y_min_pos_eeprom_temp = 1; 
       if(recdat.data[0] >= 32768)
       {
-        y_min_pos_eeprom_temp = ((float)recdat.data[0] - 65536) / 100;
-        y_min_pos_eeprom_temp -= 0.001;
+        home_offset_y_temp = ((float)recdat.data[0] - 65536) / 10;
+        home_offset_y_temp -= 0.001;
       }
       else
       {
-        y_min_pos_eeprom_temp = ((float)recdat.data[0])/100;;
-        y_min_pos_eeprom_temp += 0.001;
+        home_offset_y_temp = ((float)recdat.data[0])/10;;
+        home_offset_y_temp += 0.001;
       }
-      y_min_pos_eeprom = y_min_pos_eeprom_temp;      
+      home_offset.y = home_offset_y_temp;     
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("YMinPosEepromEnterKey\n", y_min_pos_eeprom_temp);             
+        SERIAL_ECHO_MSG("home_offset_y_temp\n", home_offset_y_temp);             
       #endif 
-      RTS_SndData(y_min_pos_eeprom_temp * 100, Y_MIN_POS_EEPROM_VP);
+        SERIAL_ECHOLNPGM("home_offset_y_temp enterkey: ", home_offset_y_temp);
+        //SERIAL_ECHOLNPGM("y_min_pos_eeprom_temp enterkey: ", y_min_pos_eeprom_temp);                 
+        //BL24CXX::writeOneByte(y_min_pos_eeprom, y_min_pos_eeprom_temp);
+        //if (y_min_pos_eeprom_temp == 1) {
+        //  RTS_SndData(101, Y_MIN_POS_EEPROM_VP);
+        //}  
+      RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);      
       settings.save();      
       break;                     
 

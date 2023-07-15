@@ -556,8 +556,8 @@ typedef struct SettingsDataStruct {
   #if ENABLED(E3S1PRO_RTS)
     uint8_t g_soundSetOffOn;
     uint8_t language_change_font;
-    //float x_min_pos_eeprom;
-    //float y_min_pos_eeprom;
+    //uint8_t x_min_pos_eeprom;
+    //uint8_t y_min_pos_eeprom;
   #endif
 
   //
@@ -2728,8 +2728,18 @@ void MarlinSettings::postprocess() {
           language_change_font = 2;
         }
         EEPROM_READ(language_change_font);
+        //if((x_min_pos_eeprom != 0) && (x_min_pos_eeprom != 1)) {
+        //  x_min_pos_eeprom = 1;
+        //}        
+        //_FIELD_TEST(x_min_pos_eeprom);
         //EEPROM_READ(x_min_pos_eeprom);
+        //if((y_min_pos_eeprom != 0) && (y_min_pos_eeprom != 1)) {
+        //  y_min_pos_eeprom = 1;
+        //}  
+        //_FIELD_TEST(y_min_pos_eeprom);        
         //EEPROM_READ(y_min_pos_eeprom);
+        //SERIAL_ECHO_MSG("  x_min_pos_eeprom:", x_min_pos_eeprom);        
+        //SERIAL_ECHO_MSG("  y_min_pos_eeprom:", y_min_pos_eeprom);  
       #endif
 
       //
@@ -3220,8 +3230,8 @@ void MarlinSettings::reset() {
   #if ENABLED(E3S1PRO_RTS)
       g_soundSetOffOn = g_soundSetOffOn;
       language_change_font = 2;
-      //x_min_pos_eeprom = -2.00;
-      //y_min_pos_eeprom = -2.00;
+      //x_min_pos_eeprom = 0;
+      //y_min_pos_eeprom = 0;
   #endif
 
   //
@@ -3969,7 +3979,14 @@ void MarlinSettings::reset() {
     TERN_(HAS_MULTI_LANGUAGE, gcode.M414_report(forReplay));
 
     #if ENABLED(E3S1PRO_RTS)
-      SERIAL_ECHO_MSG("  Display sound OffOn ", int(g_soundSetOffOn));
+      if (g_soundSetOffOn == 1 || g_soundSetOffOn == 0) {
+        SERIAL_ECHO_MSG("  Display sound: On");
+      }
+      if(g_soundSetOffOn == 2){
+        SERIAL_ECHO_MSG("  Display sound: Off");
+      }      
+      //SERIAL_ECHO_MSG("  x_min_pos_eeprom:", int(x_min_pos_eeprom));        
+      //SERIAL_ECHO_MSG("  y_min_pos_eeprom:", int(y_min_pos_eeprom));    
     #endif
 
     //

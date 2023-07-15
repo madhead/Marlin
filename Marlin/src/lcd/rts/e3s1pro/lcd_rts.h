@@ -407,8 +407,8 @@
 #define HOTEND_X_ZOFFSET_VP                0x163A
 #define HOTEND_Y_ZOFFSET_VP                0x164A
 
-#define HOME_X_OFFSET_VP                   0x165A
-#define HOME_Y_OFFSET_VP                   0x166A
+#define X_MIN_POS_EEPROM_VP                0x165A
+#define Y_MIN_POS_EEPROM_VP                0x166A
 
 #define X_MIN_POS_VP                       0x167A
 #define Y_MIN_POS_VP                       0x168A
@@ -440,8 +440,8 @@
 #define SHAPING_X_TITLE_VP                 0x187A
 #define SHAPING_Y_TITLE_VP                 0x188A
 
-#define X_MIN_POS_EEPROM_VP                0x189A
-#define Y_MIN_POS_EEPROM_VP                0x190A
+#define HOME_X_OFFSET_VP                   0x189A
+#define HOME_Y_OFFSET_VP                   0x190A
 
 #define AUTO_TRAM_1TEXT_VP                 0x1120
 
@@ -774,8 +774,6 @@ extern char waitway;
 extern int old_leveling;
 extern int change_page_font;
 extern uint8_t language_change_font;
-extern float x_min_pos_eeprom;
-extern float y_min_pos_eeprom;
 extern uint8_t lang;
 extern int Update_Time_Value;
 extern bool PoweroffContinue;
@@ -829,6 +827,8 @@ typedef struct
 extern BedNozzleHeightCalSt st_bedNozzleHeightCal;
 extern float bedNozzleHeightCalZ;
 extern uint8_t g_soundSetOffOn;
+extern uint8_t x_min_pos_eeprom;
+extern uint8_t y_min_pos_eeprom;
 extern int8_t g_uiAutoPIDRuningDiff;
 extern int16_t g_uiCurveDataCnt;
 void AutoUIBedNozzleHeightCali(void);

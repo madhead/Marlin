@@ -1035,6 +1035,7 @@ G29_TYPE GcodeSuite::G29() {
 
   #if ENABLED(E3S1PRO_RTS)
     settings.save();
+    rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);    
     RTS_AutoBedLevelPage();
   #endif
 

@@ -834,8 +834,14 @@ void unified_bed_leveling::shift_mesh_height() {
               point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
             } else {
               // Traverse the row from right to left
-              point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
-            }               
+              if (GRID_MAX_POINTS_Y % 2 == 0) {
+                  // When GRID_MAX_POINTS_Y is even
+                  point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
+              } else {
+                  // When GRID_MAX_POINTS_Y is odd
+                  point_num_real = (GRID_MAX_POINTS_X - best.pos.x - 1) + best.pos.y * GRID_MAX_POINTS_X + 1;
+              }
+            }            
             rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
             rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
             rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
@@ -859,6 +865,7 @@ void unified_bed_leveling::shift_mesh_height() {
       if (touchscreen_requested_mesh == 1) {
         queue.enqueue_one(F("G29 P1 C T"));
       }
+      rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);
       RTS_AutoBedLevelPage();
     #endif
 
