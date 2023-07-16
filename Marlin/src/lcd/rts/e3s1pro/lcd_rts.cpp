@@ -1334,8 +1334,18 @@ void RTSSHOW::RTS_HandleData(void)
         if(axes_should_home()) {
           waitway = 4;
           queue.enqueue_one_P(PSTR("G28"));
-          RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-          change_page_font = 81;
+          #if GRID_MAX_POINTS_X == 5
+            rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+            change_page_font = 81;
+          #endif
+          #if GRID_MAX_POINTS_X == 7
+            rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+            change_page_font = 94;
+          #endif  
+          #if GRID_MAX_POINTS_X == 10
+            rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+            change_page_font = 95;
+          #endif   
         }else{
           RTS_SndData(ExchangePageBase + 16, ExchangepageAddr);
           change_page_font = 16;
@@ -1623,7 +1633,7 @@ void RTSSHOW::RTS_HandleData(void)
       if(recdat.data[0] == 1)
       {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 7, ExchangepageAddr);
             change_page_font = 7;
@@ -1664,7 +1674,7 @@ void RTSSHOW::RTS_HandleData(void)
           thermalManager.setTargetHotend(200, 0);
         }
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 7, ExchangepageAddr);
             change_page_font = 7;
@@ -1679,7 +1689,7 @@ void RTSSHOW::RTS_HandleData(void)
       else if(recdat.data[0] == 3)
       {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 7, ExchangepageAddr);
             change_page_font = 7;
@@ -2583,8 +2593,18 @@ void RTSSHOW::RTS_HandleData(void)
             RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
             change_page_font = 40;
           }else{
-            RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-            change_page_font = 81;
+            #if GRID_MAX_POINTS_X == 5
+              rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+              change_page_font = 81;
+            #endif
+            #if GRID_MAX_POINTS_X == 7
+              rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+              change_page_font = 94;
+            #endif  
+            #if GRID_MAX_POINTS_X == 10
+              rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+              change_page_font = 95;
+            #endif   
           }
           #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
             queue.enqueue_one_P(PSTR("G29"));
@@ -2608,8 +2628,18 @@ void RTSSHOW::RTS_HandleData(void)
           RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
           change_page_font = 40;
         }else{
-          RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-          change_page_font = 81;
+          #if GRID_MAX_POINTS_X == 5
+            RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+            change_page_font = 81;
+          #endif
+          #if GRID_MAX_POINTS_X == 7
+            RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+            change_page_font = 94;
+          #endif  
+          #if GRID_MAX_POINTS_X == 10
+            RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+            change_page_font = 95;
+          #endif                      
         }
         rtscheck.RTS_SndData(AutoHomeFirstPoint, AUTO_BED_LEVEL_CUR_POINT_VP);
         RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);                  
@@ -2874,7 +2904,7 @@ void RTSSHOW::RTS_HandleData(void)
       if(!planner.has_blocks_queued())
       {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 46, ExchangepageAddr);
             change_page_font = 46;
@@ -2916,7 +2946,7 @@ void RTSSHOW::RTS_HandleData(void)
       if(!planner.has_blocks_queued())
       {
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 46, ExchangepageAddr);
             change_page_font = 46;
@@ -2958,7 +2988,7 @@ void RTSSHOW::RTS_HandleData(void)
         if(!planner.has_blocks_queued())
         {
           #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-            if(1 == READ(FIL_RUNOUT_PIN))
+            if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
             {
               RTS_SndData(ExchangePageBase + 46, ExchangepageAddr);
               change_page_font = 46;
@@ -3677,7 +3707,7 @@ void RTSSHOW::RTS_HandleData(void)
         strcpy(cmdbuf, cmd);
         FilenamesCount = CardRecbuf.recordcount;
         #if ENABLED(FILAMENT_RUNOUT_SENSOR)
-          if(1 == READ(FIL_RUNOUT_PIN))
+          if ((1 == READ(FIL_RUNOUT_PIN)) && (runout.enabled == true))
           {
             RTS_SndData(ExchangePageBase + 46, ExchangepageAddr);
             change_page_font = 46;
@@ -4437,8 +4467,18 @@ void RTS_AutoBedLevelPage(void)
     }else{
       rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);
       rtscheck.RTS_SndData(0, AXIS_Z_COORD_VP);
-      rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-      change_page_font = 81;
+          #if GRID_MAX_POINTS_X == 5
+            rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+            change_page_font = 81;
+          #endif
+          #if GRID_MAX_POINTS_X == 7
+            rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+            change_page_font = 94;
+          #endif  
+          #if GRID_MAX_POINTS_X == 10
+            rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+            change_page_font = 95;
+          #endif   
       waitway = 0;    
     }
   }
@@ -4487,8 +4527,18 @@ void RTS_MoveAxisHoming(void)
   }
 else if(waitway == 15)
   {
-    rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-    change_page_font = 81;
+    #if GRID_MAX_POINTS_X == 5
+      rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+      change_page_font = 81;
+    #endif
+    #if GRID_MAX_POINTS_X == 7
+      rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+      change_page_font = 94;
+    #endif  
+    #if GRID_MAX_POINTS_X == 10
+      rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+      change_page_font = 95;
+    #endif   
     waitway = 0;
   }      
 else if(waitway == 16)
