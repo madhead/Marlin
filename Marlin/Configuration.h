@@ -118,7 +118,13 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1 Pro"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
+    #if GRID_MAX_POINTS_X == 5
+      #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
+    #elif GRID_MAX_POINTS_X == 7
+      #define FIRMWARE_VERSION  "abl7x7-v002-byTT"
+    #elif GRID_MAX_POINTS_X == 10
+      #define FIRMWARE_VERSION  "abl10x10-v002-byTT"
+    #endif
   #else
     #if GRID_MAX_POINTS_X == 5
       #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
@@ -160,7 +166,13 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1 Plus"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
+    #if GRID_MAX_POINTS_X == 5
+      #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
+    #elif GRID_MAX_POINTS_X == 7
+      #define FIRMWARE_VERSION  "abl7x7-v002-byTT"
+    #elif GRID_MAX_POINTS_X == 10
+      #define FIRMWARE_VERSION  "abl10x10-v002-byTT"
+    #endif    
   #else
     #if GRID_MAX_POINTS_X == 5
       #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
@@ -2370,7 +2382,7 @@
 #if ANY(AUTO_BED_LEVELING_LINEAR, AUTO_BED_LEVELING_BILINEAR)
 
   // Set the number of grid points per dimension.
-  #define GRID_MAX_POINTS_X 5
+  //#define GRID_MAX_POINTS_X 5
   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
 
   // Probe along the Y axis, advancing X after each column

@@ -845,8 +845,18 @@ void unified_bed_leveling::shift_mesh_height() {
             rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
             rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
             rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
-            rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-            change_page_font = 81;
+            #if GRID_MAX_POINTS_X == 5
+              rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+              change_page_font = 81;
+            #endif
+            #if GRID_MAX_POINTS_X == 7
+              rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+              change_page_font = 94;
+            #endif  
+            #if GRID_MAX_POINTS_X == 10
+              rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+              change_page_font = 95;
+            #endif 
           }       
           #endif
       }

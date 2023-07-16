@@ -812,8 +812,18 @@ G29_TYPE GcodeSuite::G29() {
                   rtscheck.RTS_SndData(showcount + 1, AUTO_BED_LEVEL_CUR_POINT_VP);
                   rtscheck.RTS_SndData(z*1000, AUTO_BED_LEVEL_1POINT_NEW_VP + showcount * 2);
                   showcount ++;
-                  rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
-                  change_page_font = 81;
+                  #if GRID_MAX_POINTS_X == 5
+                    rtscheck.RTS_SndData(ExchangePageBase + 81, ExchangepageAddr);
+                    change_page_font = 81;
+                  #endif
+                  #if GRID_MAX_POINTS_X == 7
+                    rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
+                    change_page_font = 94;
+                  #endif  
+                  #if GRID_MAX_POINTS_X == 10
+                    rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
+                    change_page_font = 95;
+                  #endif 
                   }
               }
             #endif
