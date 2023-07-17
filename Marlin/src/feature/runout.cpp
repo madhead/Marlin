@@ -109,12 +109,12 @@ void event_filament_runout(const uint8_t extruder) {
 
   const bool run_runout_script = !runout.host_handling;
 
-    #if ENABLED(E3S1PRO_RTS)
-      temphot = thermalManager.temp_hotend[0].target;
-      rtscheck.RTS_SndData(ExchangePageBase + 7, ExchangepageAddr);
-      change_page_font = 7;
-      sdcard_pause_check = true;
-    #endif
+  #if ENABLED(E3S1PRO_RTS)
+    temphot = thermalManager.temp_hotend[0].target;
+    rtscheck.RTS_SndData(ExchangePageBase + 7, ExchangepageAddr);
+    change_page_font = 7;
+    sdcard_pause_check = true;
+  #endif
 
   #if ENABLED(HOST_ACTION_COMMANDS)
 
