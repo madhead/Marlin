@@ -104,11 +104,6 @@ float x_zeta = 0.0;
 float y_zeta = 0.0;
 #endif
 
-//uint8_t x_min_pos_eeprom;
-//uint8_t y_min_pos_eeprom;
-//int x_min_pos_eeprom_temp;
-//int y_min_pos_eeprom_temp;
-
 int power_off_type_yes = 0;
 int old_leveling = 0;
 int bltouch_tramming = 0;
@@ -170,6 +165,11 @@ DB RTSSHOW::snddat;
 
 uint8_t lang = 2; 
 bool lcd_sd_status;
+
+int rec_dat_temp_last_x = 0;
+int rec_dat_temp_last_y = 0;
+int rec_dat_temp_real_x = 0;
+int rec_dat_temp_real_y = 0;
 
 int FilenamesCount = 0;
 
@@ -513,6 +513,8 @@ void RTSSHOW::RTS_Init(void)
 
   RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
   RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);
+  RTS_SndData(planner.extruder_advance_K[0] * 100, ADVANCE_K_SET);
+  RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP); 
 
   RTS_SndData(StartSoundSet, 0);
   #if ENABLED(GCODE_PREVIEW_ENABLED)
@@ -2815,21 +2817,23 @@ void RTSSHOW::RTS_HandleData(void)
       } 
       else if(recdat.data[0] == 177)
       { // 00B1 Home X
+        home_offset.x = 0;
         queue.enqueue_now_P(PSTR("G28"));
         queue.enqueue_now_P(PSTR("G28 X"));
         queue.enqueue_now_P(PSTR("G1 Z5 F1000"));        
-        RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
-        RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP); 
+        RTS_SndData(0, HOME_X_OFFSET_VP);
+        RTS_SndData(0, HOME_X_OFFSET_SET_VP);      
         RTS_SndData(ExchangePageBase + 93, ExchangepageAddr);
         change_page_font = 93; 
       }  
       else if(recdat.data[0] == 178)
       { // 00B2 Home y
+        home_offset.y = 0;
         queue.enqueue_now_P(PSTR("G28"));      
         queue.enqueue_now_P(PSTR("G28 Y"));
-        queue.enqueue_now_P(PSTR("G1 Z5 F1000"));                
-        RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
-        RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);         
+        queue.enqueue_now_P(PSTR("G1 Z5 F1000"));
+        RTS_SndData(0, HOME_Y_OFFSET_VP);
+        RTS_SndData(0, HOME_Y_OFFSET_SET_VP);            
         RTS_SndData(ExchangePageBase + 93, ExchangepageAddr);
         change_page_font = 93; 
       }                                   
@@ -2896,6 +2900,51 @@ void RTSSHOW::RTS_HandleData(void)
       delay(1);
       RTS_SndData(0, MOTOR_FREE_ICON_VP);
       waitway = 0;
+      break;
+
+    case XaxismoveKeyHomeOffset:
+      waitway = 4;
+      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
+      #endif
+      if (recdat.data[0] >= 101) {
+        recdat.data[0] = rec_dat_temp_last_x;
+      }
+      current_position[X_AXIS] = ((float)recdat.data[0]) / 10;      
+      rec_dat_temp_real_x = ((float)recdat.data[0]) / 10;
+      rec_dat_temp_last_x = recdat.data[0];                              
+      RTS_line_to_current(X_AXIS);
+
+      RTS_SndData(10 * current_position[X_AXIS], HOME_X_OFFSET_SET_VP);
+      RTS_SndData(10 * current_position[X_AXIS], AXIS_X_COORD_VP);
+      delay(1);
+      RTS_SndData(0, MOTOR_FREE_ICON_VP);
+      waitway = 0;
+      break;
+
+    case YaxismoveKeyHomeOffset:
+      waitway = 4;
+      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
+      #endif
+      if (recdat.data[0] >= 101) {
+        recdat.data[0] = rec_dat_temp_last_y;
+      }
+      current_position[Y_AXIS] = ((float)recdat.data[0]) / 10;      
+      rec_dat_temp_real_y = ((float)recdat.data[0]) / 10;
+      rec_dat_temp_last_y = recdat.data[0];                              
+      RTS_line_to_current(Y_AXIS);
+
+      RTS_SndData(10 * current_position[Y_AXIS], HOME_Y_OFFSET_SET_VP);
+      RTS_SndData(10 * current_position[Y_AXIS], AXIS_Y_COORD_VP);     
+      delay(1);
+      RTS_SndData(0, MOTOR_FREE_ICON_VP);
+      waitway = 0;
+      break;
+
+    case E0FlowKey:
+      planner.flow_percentage[0] = recdat.data[0];
+      RTS_SndData(recdat.data[0], E0_SET_FLOW_VP);
       break;
 
     case HeaterLoadEnterKey:
@@ -3597,7 +3646,6 @@ void RTSSHOW::RTS_HandleData(void)
       
     case YMinPosEepromEnterKey:
       float home_offset_y_temp;
-      //y_min_pos_eeprom_temp = 1; 
       if(recdat.data[0] >= 32768)
       {
         home_offset_y_temp = ((float)recdat.data[0] - 65536) / 10;

@@ -443,6 +443,11 @@
 #define HOME_X_OFFSET_VP                   0x189A
 #define HOME_Y_OFFSET_VP                   0x190A
 
+#define HOME_X_OFFSET_SET_VP               0x191A
+#define HOME_Y_OFFSET_SET_VP               0x192A
+
+#define E0_SET_FLOW_VP                     0x193A
+
 #define AUTO_TRAM_1TEXT_VP                 0x1120
 
 #define CRTOUCH_TRAMMING_POINT_1_VP        0x230A
@@ -670,7 +675,10 @@ typedef enum PROC_COM : int8_t {
    XShapingZetasetEnterKey = 76,
    YShapingZetasetEnterKey = 77,
    XMinPosEepromEnterKey   = 78,
-   YMinPosEepromEnterKey   = 79             
+   YMinPosEepromEnterKey   = 79,
+   XaxismoveKeyHomeOffset  = 80,
+   YaxismoveKeyHomeOffset  = 81,
+   E0FlowKey               = 82
 } proc_command_t; 
 
 const unsigned long Addrbuf[] = 
@@ -757,6 +765,9 @@ const unsigned long Addrbuf[] =
    0x186A, // Y Zeta
    0x189A, // x_min_pos
    0x190A, // y_min_pos
+   0x191A, // y_min_pos_homeoffset
+   0x192A, // y_min_pos_homeoffset
+   0x193A, // Flow Key
   0
 };
 

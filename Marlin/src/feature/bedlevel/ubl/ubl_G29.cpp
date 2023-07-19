@@ -829,19 +829,25 @@ void unified_bed_leveling::shift_mesh_height() {
             rtscheck.RTS_SndData(ExchangePageBase + 26, ExchangepageAddr);
             change_page_font = 26;
           }else{
-            if (best.pos.y % 2 == 0) {
-              // Traverse the row from left to right
-              point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
-            } else {
-              // Traverse the row from right to left
-              if (GRID_MAX_POINTS_Y % 2 == 0) {
-                  // When GRID_MAX_POINTS_Y is even
-                  point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
-              } else {
-                  // When GRID_MAX_POINTS_Y is odd
-                  point_num_real = (GRID_MAX_POINTS_X - best.pos.x - 1) + best.pos.y * GRID_MAX_POINTS_X + 1;
-              }
-            }            
+            if (GRID_MAX_POINTS_Y % 2 == 1) {
+                // When GRID_MAX_POINTS_Y is odd
+                if (best.pos.y % 2 == 0) {
+                    // Traverse the row from left to right
+                    point_num_real = best.pos.x + best.pos.y * GRID_MAX_POINTS_X + 1;
+                } else {
+                    // Traverse the row from right to left
+                    point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
+                }
+            }else{
+                // When GRID_MAX_POINTS_Y is even
+                if (best.pos.y % 2 == 0) {
+                    // Traverse the row from right to left
+                    point_num_real = (GRID_MAX_POINTS_X - 1 - best.pos.x) + best.pos.y * GRID_MAX_POINTS_X + 1;
+                } else {
+                    // Traverse the row from left to right in the zigzag manner
+                    point_num_real = (best.pos.y * GRID_MAX_POINTS_X) + best.pos.x + 1;
+                }
+            }
             rtscheck.RTS_SndData(GRID_MAX_POINTS, AUTO_BED_LEVEL_END_POINT);
             rtscheck.RTS_SndData(point_num, AUTO_BED_LEVEL_CUR_POINT_VP);
             rtscheck.RTS_SndData(measured_z * 1000, AUTO_BED_LEVEL_1POINT_NEW_VP + (point_num_real - 1) * 2);
