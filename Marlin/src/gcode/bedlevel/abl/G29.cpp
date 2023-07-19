@@ -1044,7 +1044,8 @@ G29_TYPE GcodeSuite::G29() {
   #endif
 
   #if ENABLED(E3S1PRO_RTS)
-    settings.save();
+    queue.enqueue_one_P(PSTR("M420 S1"));  
+    queue.enqueue_one_P(PSTR("M500"));    
     rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);    
     RTS_AutoBedLevelPage();
   #endif
