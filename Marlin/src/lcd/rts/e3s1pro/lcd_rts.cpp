@@ -2675,10 +2675,15 @@ void RTSSHOW::RTS_HandleData(void)
             sprintf_P(cmd9, "G30 X%d Y%d", manual_level_5position[4][0],manual_level_5position[4][1]);
             queue.enqueue_now_P(cmd9);
             // Finally center
-            char cmd10[20];
-            sprintf_P(cmd10, "G30 X%d Y%d", (X_BED_SIZE/2),(Y_BED_SIZE/2)); 
-            queue.enqueue_now_P(cmd10);
- 
+            #if ENABLED(ENDER_3S1_PRO) || ENABLED(ENDER_3S1)
+              queue.enqueue_now_P(PSTR("G30 X117.5 Y117.5")); 
+            #elif ENABLED(ENDER_3S1_PLUS)
+              queue.enqueue_now_P(PSTR("G30 X155 Y157.5")); 
+            #else     
+              char cmd1[20];       
+              sprintf_P(cmd1, "G30 X%d Y%d", manual_level_5position[0][0],manual_level_5position[0][1]);
+              queue.enqueue_now_P(cmd1);
+            #endif  
             RTS_SndData(ExchangePageBase + 89, ExchangepageAddr);
             change_page_font = 89;                      
           }
