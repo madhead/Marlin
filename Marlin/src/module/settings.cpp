@@ -3980,12 +3980,13 @@ void MarlinSettings::reset() {
 
     #if ENABLED(E3S1PRO_RTS)
       if (g_soundSetOffOn == 1 || g_soundSetOffOn == 0) {
-        SERIAL_ECHO_MSG("  Display sound: On");
+        SERIAL_ECHO_MSG("  Display sound: ON");
       }
       if(g_soundSetOffOn == 2){
-        SERIAL_ECHO_MSG("  Display sound: Off");
+        SERIAL_ECHO_MSG("  Display sound: OFF");
       }      
-      //SERIAL_ECHO_MSG("  x_min_pos_eeprom:", int(x_min_pos_eeprom));        
+      TERN_(HAS_EXTRUDERS, gcode.M221_report(forReplay));      
+      //SERIAL_ECHO_MSG("  x_min_pos_eeprom:", int(x_min_pos_eeprom));          
       //SERIAL_ECHO_MSG("  y_min_pos_eeprom:", int(y_min_pos_eeprom));    
     #endif
 

@@ -44,4 +44,11 @@ void GcodeSuite::M221() {
   }
 }
 
+#if ENABLED(E3S1PRO_RTS)
+  void GcodeSuite::M221_report(const bool forReplay/*=true*/) {
+    report_heading_etc(forReplay, F(STR_FLOW_RATE));
+    SERIAL_ECHOLNPGM("  M221 ", "S", planner.flow_percentage[0]," ; (%)");
+  }
+#endif
+
 #endif // EXTRUDERS

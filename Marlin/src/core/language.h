@@ -597,6 +597,10 @@
 #define SUPERSCRIPT_TWO   TERN(NOT_EXTENDED_ISO10646_1_5X7, "^2", "²")
 #define SUPERSCRIPT_THREE TERN(NOT_EXTENDED_ISO10646_1_5X7, "^3", "³")
 
+#if ENABLED(E3S1PRO_RTS)
+  #define STR_FLOW_RATE "Extruder Flowrate"
+#endif
+
 #include "multi_language.h"   // Allow multiple languages
 
 #include "../lcd/language/language_en.h"
