@@ -3525,6 +3525,13 @@ void MarlinSettings::reset() {
     #endif
   #endif
 
+  //
+  // M221 Extruder Flowrate
+  //
+  #if HAS_EXTRUDERS  
+    planner.flow_percentage[0] = DEFAULT_EXTRUDER_FLOWRATE;
+  #endif
+
   endstops.enable_globally(ENABLED(ENDSTOPS_ALWAYS_ON_DEFAULT));
 
   reset_stepper_drivers();
