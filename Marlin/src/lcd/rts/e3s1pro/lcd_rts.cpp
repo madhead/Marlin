@@ -397,6 +397,54 @@ void RTSSHOW::RTS_SDCardUpate() {
   }
 }
 
+void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue)
+{
+  // Prepare the data packet to send to the display.
+  databuf[0] = FHONE;
+  databuf[1] = FHTWO;
+  databuf[2] = 0x03; // Length of the data packet (excluding header).
+  databuf[3] = VarAddr_W; // Command to write data to the display.
+  databuf[4] = packetValue >> 8; // MSB of the packetValue.
+  databuf[5] = packetValue & 0xFF; // LSB of the packetValue.
+
+  // Send the data packet to the display over the serial connection.
+  for (int i = 0; i < 6; i++)
+  {
+    LCDSERIAL.write(databuf[i]);
+    delayMicroseconds(1);
+  }
+
+  // Clear the receive buffer.
+  memset(databuf, 0, sizeof(databuf));
+
+  // Wait for the response from the display.
+  delay(50); // Adjust the delay time based on the response time of the display.
+
+  // Read the response from the display.
+  int recnum = 0;
+  while (LCDSERIAL.available() > 0 && recnum < SizeofDatabuf)
+  {
+    delay(1);
+    databuf[recnum] = LCDSERIAL.read();
+    recnum++;
+  }
+
+  // Check if the received response is valid.
+  if (recnum >= 6 && databuf[0] == FHONE && databuf[1] == FHTWO && databuf[2] == 0x04)
+  {
+    // Extract the received value from the response.
+    uint16_t receivedValue = (databuf[3] << 8) | databuf[4];
+
+    // Print the received value to the serial monitor.
+    SERIAL_ECHO_MSG("Received value: ", receivedValue);
+  }
+  else
+  {
+    // Handle error or invalid response here.
+    SERIAL_ECHOLN("Error: Invalid response from display.");
+  }
+}
+
 void RTSSHOW::RTS_Init(void)
 {
 
@@ -412,6 +460,26 @@ void RTSSHOW::RTS_Init(void)
     if (!IS_SD_INSERTED()) { delay(500); card.mount(); }
     if (IS_SD_INSERTED()) recovery.check();
   #endif
+
+// Send request to read the value at address 0x17D8 from the display
+RTS_SndData(0x17D8, VarAddr_R);
+
+// Receive and process the response from the display
+uint16_t addressToSend = 0x17D8;
+sendPacketAndReceiveResponse(addressToSend);
+
+//SERIAL_ECHO("Data received: ");
+//for (int i = 0; i < SizeofDatabuf; i++) {
+//  SERIAL_ECHO(databuf[i]);
+//  SERIAL_ECHO(" ");
+//}
+
+// Assuming the value is in recdat.data[0] and recdat.data[1].
+//uint16_t variable_0x17D8 = (databuf[3] << 8) | databuf[4];
+uint16_t variable_0x17D8 = (recdat.data[0] << 8) | recdat.data[1]; 
+
+// Print the value of variable_0x17D8 to the serial monitor.
+SERIAL_ECHO_MSG("Value of variable 0x17D8: ", variable_0x17D8);
 
   delay(500);
 
@@ -1118,6 +1186,10 @@ void RTSSHOW::RTS_HandleData(void)
   #endif
   switch(Checkkey)
   {
+    case 0x17D8: // Check if received address is 0x1234
+      // Output the received data to the serial monitor
+      SERIAL_ECHO_MSG("Received value: ", recdat.data[0]);
+      break;    
     //SERIAL_ECHO_MSG("Recorded value Catchall\n", Checkkey);            
     case MainEnterKey:
       if (recdat.data[0] == 1) {

@@ -565,7 +565,8 @@ class RTSSHOW
     #if HAS_CUTTER
       void RTS_HandleData_Laser(void);
       void RTS_SDcard_Stop_laser(void);
-    #endif   
+    #endif
+    void sendPacketAndReceiveResponse(uint16_t packetValue);
     static void RTS_SndText(const char string[], unsigned long addr, uint8_t textSize = 30);
     static DB recdat;
     static DB snddat;
