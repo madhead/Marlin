@@ -293,6 +293,7 @@
 #define STR_ACCELERATION_P_R_T              "Acceleration (units/s2) (P<print-accel> R<retract-accel> T<travel-accel>)"
 #define STR_TOOL_CHANGING                   "Tool-changing"
 #define STR_HOTEND_OFFSETS                  "Hotend offsets"
+#define STR_FLOW_RATE                       "Flow Percentage"
 #define STR_SERVO_ANGLES                    "Servo Angles"
 #define STR_HOTEND_PID                      "Hotend PID"
 #define STR_BED_PID                         "Bed PID"
@@ -596,10 +597,6 @@
 // Use superscripts, if possible. Evaluated at point of use.
 #define SUPERSCRIPT_TWO   TERN(NOT_EXTENDED_ISO10646_1_5X7, "^2", "²")
 #define SUPERSCRIPT_THREE TERN(NOT_EXTENDED_ISO10646_1_5X7, "^3", "³")
-
-#if ENABLED(E3S1PRO_RTS)
-  #define STR_FLOW_RATE "Extruder Flowrate"
-#endif
 
 #include "multi_language.h"   // Allow multiple languages
 
