@@ -119,19 +119,23 @@
   #define MACHINE_TYPE      "Ender-3 S1 Pro"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "abl5x5-v003-byTT"
+      #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "abl7x7-v003-byTT"
+      #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "abl10x10-v003-byTT"
+      #define FIRMWARE_VERSION  "abl10x10-v004-byTT"
     #endif
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "UI20" 
@@ -167,19 +171,23 @@
   #define MACHINE_TYPE      "Ender-3 S1 Plus"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "abl5x5-v003-byTT"
+      #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "abl7x7-v003-byTT"
+      #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "abl10x10-v003-byTT"
+      #define FIRMWARE_VERSION  "abl10x10-v004-byTT"
     #endif    
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v003-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT"
@@ -214,14 +222,16 @@
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v002-byTT"
+    #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v002-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v002-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v002-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT" 
@@ -259,11 +269,13 @@
     #define FIRMWARE_VERSION  "abl5x5-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 9
+      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT" 

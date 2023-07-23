@@ -55,6 +55,8 @@
 #define DC_SOUND_SET_DDR    ((unsigned long)0x0080)
 #define WRITE_CURVE_DDR_CMD ((unsigned long)0x030B)
 
+const uint8_t DGUS_READVAR = 0x83;
+const uint16_t DGUS_VERSION = 0x000F;
 
 /*Error value*/
 #define Error_201   "201 (Command Timeout)"   // The command too much inactive time
@@ -536,6 +538,17 @@ typedef struct {
 #define RECEIVED_SHAKE_HAND_ACK  0x01
 
 extern HMI_LCD_Flag_t HMI_lcd_flag;
+
+struct RecData2 {
+  unsigned char len;
+  unsigned char head[2];
+  unsigned char command;
+  unsigned long addr;
+  unsigned long bytelen;
+  unsigned short data[32]; // Adjust the size based on the expected maximum length of data
+  unsigned char reserv[4]; // Add the reserved field, as present in ResData2 (DB) struct
+};
+
 class RTSSHOW
 {
   public:
@@ -543,7 +556,7 @@ class RTSSHOW
     static void EachMomentUpdate(void);
     static float isBedLevelingFlag;
     int RTS_RecData(void);
-    int RTS_RecData2(void);
+    int RTS_RecData2();
     void RTS_SDCardInit(void);
     bool RTS_SD_Detected(void);
     void RTS_SDCardUpate(void);
@@ -566,11 +579,14 @@ class RTSSHOW
       void RTS_HandleData_Laser(void);
       void RTS_SDcard_Stop_laser(void);
     #endif
+    String RTS_ReadTextField(uint16_t address);
     void sendPacketAndReceiveResponse(uint16_t packetValue);
+    bool readDisplayVersion(uint8_t &guiVersion, uint8_t &osVersion);
     static void RTS_SndText(const char string[], unsigned long addr, uint8_t textSize = 30);
     static DB recdat;
     static DB snddat;
   private:
+    RecData2 recData;
     unsigned char databuf[SizeofDatabuf];
 };
 
@@ -843,6 +859,7 @@ extern uint8_t x_min_pos_eeprom;
 extern uint8_t y_min_pos_eeprom;
 extern int8_t g_uiAutoPIDRuningDiff;
 extern int16_t g_uiCurveDataCnt;
+extern int leveling_running;
 void AutoUIBedNozzleHeightCali(void);
 void LcdAutoUIMoveXYBlock(float _posX, float _posY);
 void LcdAutoUIMoveZBlock(float _posZ);

@@ -819,7 +819,11 @@ G29_TYPE GcodeSuite::G29() {
                   #if GRID_MAX_POINTS_X == 7
                     rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
                     change_page_font = 94;
-                  #endif  
+                  #endif
+                  #if GRID_MAX_POINTS_X == 9
+                    rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+                    change_page_font = 96;
+                  #endif                    
                   #if GRID_MAX_POINTS_X == 10
                     rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
                     change_page_font = 95;
@@ -1045,7 +1049,8 @@ G29_TYPE GcodeSuite::G29() {
 
   #if ENABLED(E3S1PRO_RTS)
     queue.enqueue_one_P(PSTR("M420 S1"));  
-    queue.enqueue_one_P(PSTR("M500"));    
+    queue.enqueue_one_P(PSTR("M500"));
+    leveling_running = 0;    
     rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);    
     RTS_AutoBedLevelPage();
   #endif

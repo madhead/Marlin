@@ -858,7 +858,11 @@ void unified_bed_leveling::shift_mesh_height() {
             #if GRID_MAX_POINTS_X == 7
               rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
               change_page_font = 94;
-            #endif  
+            #endif
+            #if GRID_MAX_POINTS_X == 9
+              rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+              change_page_font = 96;
+            #endif              
             #if GRID_MAX_POINTS_X == 10
               rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
               change_page_font = 95;
@@ -882,6 +886,7 @@ void unified_bed_leveling::shift_mesh_height() {
         queue.enqueue_one(F("G29 P1 C T"));
       }
       rtscheck.RTS_SndData(lang, AUTO_LEVELING_START_TITLE_VP);
+      leveling_running = 0;
       RTS_AutoBedLevelPage();
     #endif
 

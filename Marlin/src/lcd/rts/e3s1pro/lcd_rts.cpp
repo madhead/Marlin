@@ -107,6 +107,7 @@ float y_zeta = 0.0;
 int power_off_type_yes = 0;
 int old_leveling = 0;
 int bltouch_tramming = 0;
+int leveling_running = 0;
 
 int touchscreen_requested_mesh = 0;
 
@@ -397,19 +398,56 @@ void RTSSHOW::RTS_SDCardUpate() {
   }
 }
 
-void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue)
-{
+bool RTSSHOW::readDisplayVersion(uint8_t &guiVersion, uint8_t &osVersion) {
+  // Prepare the data packet to send to the display.
+  uint16_t addressToRead = DGUS_VERSION;
+  sendPacketAndReceiveResponse(addressToRead);
+
+  // Check if the received response is valid
+  if (recData.command == DGUS_READVAR && recData.addr == DGUS_VERSION) {
+    // Extract the version information from the received data
+    guiVersion = recData.data[0] & 0xFF; // Assuming GUI version is in the LSB
+    osVersion = recData.data[1] & 0xFF;  // Assuming OS version is in the LSB
+    return true; // Successful reading
+  } else {
+    // Handle error or invalid response here
+    return false; // Reading failed
+  }
+}
+
+String RTSSHOW::RTS_ReadTextField(uint16_t address) {
+  // Send the read command to the DGUS display to read the text field content
+  sendPacketAndReceiveResponse(address);
+
+  // Check if the received response is valid
+  if (recData.command == 0x83 && recData.addr == address) {
+    String textFieldContent = "";
+    for (unsigned int i = 0; i < recData.bytelen; i++) {
+      // Extract the character from the received data
+      char character = recData.data[i];
+
+      // Append the character to the textFieldContent
+      textFieldContent += character;
+    }
+    return textFieldContent;
+  } else {
+    // Handle error or invalid response here
+    // You can return an error code or an empty string
+    return "";
+  }
+}
+
+void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
   // Prepare the data packet to send to the display.
   databuf[0] = FHONE;
   databuf[1] = FHTWO;
   databuf[2] = 0x03; // Length of the data packet (excluding header).
-  databuf[3] = VarAddr_W; // Command to write data to the display.
+  databuf[3] = VarAddr_R; // Command to read data from the display.
   databuf[4] = packetValue >> 8; // MSB of the packetValue.
   databuf[5] = packetValue & 0xFF; // LSB of the packetValue.
 
   // Send the data packet to the display over the serial connection.
-  for (int i = 0; i < 6; i++)
-  {
+  for (int i = 0; i < 6; i++) {
     LCDSERIAL.write(databuf[i]);
     delayMicroseconds(1);
   }
@@ -421,27 +459,36 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue)
   delay(50); // Adjust the delay time based on the response time of the display.
 
   // Read the response from the display.
-  int recnum = 0;
-  while (LCDSERIAL.available() > 0 && recnum < SizeofDatabuf)
-  {
+  int recnum = 0; // Declare the 'recnum' variable here.
+  while (LCDSERIAL.available() > 0 && recnum < SizeofDatabuf) {
     delay(1);
     databuf[recnum] = LCDSERIAL.read();
     recnum++;
   }
 
-  // Check if the received response is valid.
-  if (recnum >= 6 && databuf[0] == FHONE && databuf[1] == FHTWO && databuf[2] == 0x04)
-  {
-    // Extract the received value from the response.
-    uint16_t receivedValue = (databuf[3] << 8) | databuf[4];
-
-    // Print the received value to the serial monitor.
-    SERIAL_ECHO_MSG("Received value: ", receivedValue);
+  // Print the received data to the serial monitor for debugging.
+  SERIAL_ECHO("Received data from display: ");
+  for (int i = 0; i < recnum; i++) {
+    SERIAL_ECHO(databuf[i]);
+    SERIAL_ECHO(" ");
   }
-  else
-  {
+  SERIAL_ECHOLN("");
+
+  if (recnum >= 7 && databuf[0] == FHONE && databuf[1] == FHTWO && databuf[2] == 0x04) {
+    // Extract the received data from the response.
+    recData.len = databuf[2];
+    recData.command = databuf[3];
+    recData.addr = databuf[4];
+    recData.addr = (recData.addr << 8) | databuf[5];
+    recData.bytelen = databuf[6]; // Corrected position of bytelen
+    for (unsigned int i = 0; i < recData.bytelen; i += 2) {
+      recData.data[i / 2] = databuf[7 + i];
+      recData.data[i / 2] = (recData.data[i / 2] << 8) | databuf[8 + i];
+    }
+  } else {
     // Handle error or invalid response here.
     SERIAL_ECHOLN("Error: Invalid response from display.");
+    return;
   }
 }
 
@@ -460,27 +507,27 @@ void RTSSHOW::RTS_Init(void)
     if (!IS_SD_INSERTED()) { delay(500); card.mount(); }
     if (IS_SD_INSERTED()) recovery.check();
   #endif
+/**
+  uint8_t guiVersion, osVersion;
+  bool success = readDisplayVersion(guiVersion, osVersion);
+  if (success) {
+    // Display the received display version
+    SERIAL_ECHO("Display Version: GUI ");
+    SERIAL_ECHO(guiVersion);
+    SERIAL_ECHO(", OS ");
+    SERIAL_ECHOLN(osVersion);
+  } else {
+    // Handle the case where reading the display version failed
+    SERIAL_ECHOLN("Error: Failed to read display version during initialization.");
+    // You can take appropriate action here, e.g., retry, display an error message, etc.
+  }
 
-// Send request to read the value at address 0x17D8 from the display
-RTS_SndData(0x17D8, VarAddr_R);
-
-// Receive and process the response from the display
-uint16_t addressToSend = 0x17D8;
-sendPacketAndReceiveResponse(addressToSend);
-
-//SERIAL_ECHO("Data received: ");
-//for (int i = 0; i < SizeofDatabuf; i++) {
-//  SERIAL_ECHO(databuf[i]);
-//  SERIAL_ECHO(" ");
-//}
-
-// Assuming the value is in recdat.data[0] and recdat.data[1].
-//uint16_t variable_0x17D8 = (databuf[3] << 8) | databuf[4];
-uint16_t variable_0x17D8 = (recdat.data[0] << 8) | recdat.data[1]; 
-
-// Print the value of variable_0x17D8 to the serial monitor.
-SERIAL_ECHO_MSG("Value of variable 0x17D8: ", variable_0x17D8);
-
+  uint16_t addressToRead = 0x000F;  
+  // Read the text field content from the display at the given address
+  String textFieldContent = RTS_ReadTextField(addressToRead);
+  // Print the received text field content to the serial monitor for testing
+  SERIAL_ECHO_MSG("Value of variable at address 0x17D8: ", textFieldContent.c_str());
+*/
   delay(500);
 
   last_zoffset = zprobe_zoffset = probe.offset.z;
@@ -582,7 +629,7 @@ SERIAL_ECHO_MSG("Value of variable 0x17D8: ", variable_0x17D8);
   RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
   RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);
   RTS_SndData(planner.extruder_advance_K[0] * 100, ADVANCE_K_SET);
-  RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP); 
+  RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
 
   RTS_SndData(StartSoundSet, 0);
   #if ENABLED(GCODE_PREVIEW_ENABLED)
@@ -776,111 +823,64 @@ int RTSSHOW::RTS_RecData(void)
   return 2;
 }
 
-
-int RTSSHOW::RTS_RecData2(void)
-{
+int RTSSHOW::RTS_RecData2() {
   static int recnum = 0;
-  #define DWINBUF_MAX 256
-  static bool recvflag = false;
-  static uint8_t databuf[DWINBUF_MAX];
 
-  // Parse data frame
-  if((LCDSERIAL.available() > 0) && (recnum < (signed)sizeof(databuf)))
-  {
-    databuf[recnum++] = LCDSERIAL.read();
-
-    #define RECV_DEBUG
-    #if defined(RECV_DEBUG)
-      char buf[16];
-      sprintf_P(buf, PSTR("%02x "), databuf[recnum - 1]);
-      //serialprintPGM(buf);
-      //SERIAL_ECHOPGM(buf);
-      //SERIAL_ECHO(databuf[i]); 
-    #endif
-
-    // Verify the frame head
-    if((recnum == 1) && (databuf[0] != 0x5A))
-    {
+  while ((LCDSERIAL.available() > 0) && (recnum < SizeofDatabuf)) {
+    delay(1);
+    databuf[recnum] = LCDSERIAL.read();
+    if (databuf[0] == FHONE) {
+      recnum++;
+    } else if (databuf[0] == FHTWO) {
+      databuf[0] = FHONE;
+      databuf[1] = FHTWO;
+      recnum += 2;
+    } else if (databuf[0] == FHLENG) {
+      databuf[0] = FHONE;
+      databuf[1] = FHTWO;
+      databuf[2] = FHLENG;
+      recnum += 3;
+    } else if (databuf[0] == VarAddr_R) {
+      databuf[0] = FHONE;
+      databuf[1] = FHTWO;
+      databuf[2] = FHLENG;
+      databuf[3] = VarAddr_R;
+      recnum += 4;
+    } else {
       recnum = 0;
     }
-    else if((recnum == 2) && (databuf[1] != 0xA5))
-    {
-      // Verify the frame head
-      recnum = 0;
-    }
-    else if((recnum == 4) && (databuf[3] != 0x83))
-    {
-      // Parse only the read command 0x83 and filter out the reply command 0x82
-      recnum = 0;
-    }
-    else if((recnum >= 3) && (databuf[2] == (recnum - 3)))
-    {
-      // Complete resolution
-      recvflag = true;
-
-      #if defined(RECV_DEBUG)
-        //serialprintPGM("\n");
-        //SERIAL_ECHO_MSG("dwin rx ok");
-      #endif
-    }
-    else if((recnum >= 3) && ((recnum - 3) > databuf[2]))
-    {
-      // The actual received data bytes were larger than the frame data bytes, parsing failed
-      recnum = 0;
-    }
-  }
-
-  if(!recvflag)
-  {
-    return -1;
-  }
-  else
-  {
-    recvflag = false;
   }
 
   // receive nothing
-  if(recnum < 1)
-  {
+  if (recnum < 1) {
     return -1;
-  }
-  else if((recdat.head[0] == databuf[0]) && (recdat.head[1] == databuf[1]) && (recnum > 2))
-  {
+  } else if ((recdat.head[0] == databuf[0]) && (recdat.head[1] == databuf[1]) && (recnum > 2)) {
     recdat.len = databuf[2];
     recdat.command = databuf[3];
     // response for writing byte
-    if((recdat.len == 0x03) && ((recdat.command == 0x82) || (recdat.command == 0x80)) && (databuf[4] == 0x4F) && (databuf[5] == 0x4B))
-    {
+    if ((recdat.len == 0x03) && ((recdat.command == 0x82) || (recdat.command == 0x80)) && (databuf[4] == 0x4F) && (databuf[5] == 0x4B)) {
       memset(databuf, 0, sizeof(databuf));
       recnum = 0;
       return -1;
-    }
-    else if(recdat.command == 0x83)
-    {
+    } else if (recdat.command == 0x83) {
       // response for reading the data from the variate
       recdat.addr = databuf[4];
       recdat.addr = (recdat.addr << 8) | databuf[5];
       recdat.bytelen = databuf[6];
-      for(unsigned int i = 0; i < recdat.bytelen; i += 2)
-      {
+      for (unsigned int i = 0; i < recdat.bytelen; i += 2) {
         recdat.data[i / 2] = databuf[7 + i];
         recdat.data[i / 2] = (recdat.data[i / 2] << 8) | databuf[8 + i];
       }
-    }
-    else if(recdat.command == 0x81)
-    {
+    } else if (recdat.command == 0x81) {
       // response for reading the page from the register
       recdat.addr = databuf[4];
       recdat.bytelen = databuf[5];
-      for(unsigned int i = 0; i < recdat.bytelen; i ++)
-      {
+      for (unsigned int i = 0; i < recdat.bytelen; i++) {
         recdat.data[i] = databuf[6 + i];
         // recdat.data[i] = (recdat.data[i] << 8 )| databuf[7 + i];
       }
     }
-  }
-  else
-  {
+  } else {
     memset(databuf, 0, sizeof(databuf));
     recnum = 0;
     // receive the wrong data
@@ -1326,6 +1326,7 @@ void RTSSHOW::RTS_HandleData(void)
         }
       }
       else if (recdat.data[0] == 8) {
+        RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);         
         RTS_SndData(ExchangePageBase + 1, ExchangepageAddr);
         #if ENABLED(GCODE_PREVIEW_ENABLED)
           if (false == CardRecbuf.selectFlag) {
@@ -1415,7 +1416,11 @@ void RTSSHOW::RTS_HandleData(void)
           #if GRID_MAX_POINTS_X == 7
             rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
             change_page_font = 94;
-          #endif  
+          #endif 
+          #if GRID_MAX_POINTS_X == 9
+            rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+            change_page_font = 96;
+          #endif            
           #if GRID_MAX_POINTS_X == 10
             rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
             change_page_font = 95;
@@ -1435,6 +1440,16 @@ void RTSSHOW::RTS_HandleData(void)
       if(recdat.data[0] == 1)
       {
         // thermalManager.fan_speed[0] ? RTS_SndData(1, PRINTER_FANOPEN_TITLE_VP) : RTS_SndData(0, PRINTER_FANOPEN_TITLE_VP);
+        x_frequency = stepper.get_shaping_frequency(X_AXIS);
+        RTS_SndData(x_frequency * 100, SHAPING_X_FREQUENCY_VP);
+        y_frequency = stepper.get_shaping_frequency(Y_AXIS);
+        RTS_SndData(y_frequency * 100, SHAPING_Y_FREQUENCY_VP);
+        x_zeta = stepper.get_shaping_damping_ratio(X_AXIS);
+        RTS_SndData(x_zeta * 100, SHAPING_X_ZETA_VP);
+        y_zeta = stepper.get_shaping_damping_ratio(Y_AXIS);
+        RTS_SndData(y_zeta * 100, SHAPING_Y_ZETA_VP);  
+        RTS_SndData(planner.extruder_advance_K[0] * 100, ADVANCE_K_SET);              
+        RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);        
         RTS_SndData(ExchangePageBase + 14, ExchangepageAddr);
         change_page_font = 14;
       }
@@ -2657,10 +2672,6 @@ void RTSSHOW::RTS_HandleData(void)
         #if ENABLED(BLTOUCH)
           old_leveling = 0;
 
-          RTS_SndData(AutoHomeFirstPoint, AUTO_BED_LEVEL_CUR_POINT_VP);
-          RTS_SndData(lang + 10, AUTO_LEVELING_START_TITLE_VP);          
-          RTS_SndData(GRID_MAX_POINTS_X * GRID_MAX_POINTS_Y, AUTO_BED_LEVEL_END_POINT);
-
           if(axes_should_home()){
             waitway = 15;
             queue.enqueue_one_P(PSTR("G28"));
@@ -2674,21 +2685,61 @@ void RTSSHOW::RTS_HandleData(void)
             #if GRID_MAX_POINTS_X == 7
               rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
               change_page_font = 94;
-            #endif  
+            #endif
+            #if GRID_MAX_POINTS_X == 9
+              rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+              change_page_font = 96;
+            #endif               
             #if GRID_MAX_POINTS_X == 10
               rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
               change_page_font = 95;
             #endif   
           }
-          #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-            queue.enqueue_one_P(PSTR("G29"));
-          #else
-            touchscreen_requested_mesh = 1;
-            queue.enqueue_one_P(PSTR("G29 P1 T"));
-            queue.enqueue_one_P(PSTR("G29 S0"));
-            queue.enqueue_one_P(PSTR("M420 S1"));
-            queue.enqueue_one_P(PSTR("M500"));
-          #endif
+          if (leveling_running == 0){
+            RTS_SndData(AutoHomeFirstPoint, AUTO_BED_LEVEL_CUR_POINT_VP);
+            RTS_SndData(lang + 10, AUTO_LEVELING_START_TITLE_VP);          
+            RTS_SndData(GRID_MAX_POINTS_X * GRID_MAX_POINTS_Y, AUTO_BED_LEVEL_END_POINT);            
+            leveling_running = 1;
+            bedlevel.reset();
+            bool zig = false;
+            int8_t inStart, inStop, inInc, showcount;
+            showcount = 0;
+            //settings.load();
+            for (int y = 0; y < GRID_MAX_POINTS_Y; y++)
+            {
+              // away from origin
+              if (zig)
+              {
+                inStart = GRID_MAX_POINTS_X - 1;
+                inStop = -1;
+                inInc = -1;
+              }
+              else
+              {
+                // towards origin
+                inStart = 0;
+                inStop = GRID_MAX_POINTS_X;
+                inInc = 1;
+              }
+              zig ^= true;
+              for (int x = inStart; x != inStop; x += inInc)
+              {
+                // Set the value to 0 directly
+                RTS_SndData(0, AUTO_BED_LEVEL_1POINT_NEW_VP + showcount * 2);
+                showcount++;
+              }
+            }          
+
+            #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+              queue.enqueue_one_P(PSTR("G29"));
+            #else
+              touchscreen_requested_mesh = 1;
+              queue.enqueue_one_P(PSTR("G29 P1 T"));
+              queue.enqueue_one_P(PSTR("G29 S0"));
+              queue.enqueue_one_P(PSTR("M420 S1"));
+              queue.enqueue_one_P(PSTR("M500"));
+            #endif
+          }
         #endif
       }  
       else if(recdat.data[0] == 164)
@@ -2709,7 +2760,11 @@ void RTSSHOW::RTS_HandleData(void)
           #if GRID_MAX_POINTS_X == 7
             RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
             change_page_font = 94;
-          #endif  
+          #endif
+          #if GRID_MAX_POINTS_X == 9
+            RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+            change_page_font = 96;
+          #endif              
           #if GRID_MAX_POINTS_X == 10
             RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
             change_page_font = 95;
@@ -3022,6 +3077,9 @@ void RTSSHOW::RTS_HandleData(void)
     case E0FlowKey:
       planner.flow_percentage[0] = recdat.data[0];
       RTS_SndData(recdat.data[0], E0_SET_FLOW_VP);
+      if(!card.isPrinting()){
+        settings.save();
+      }
       break;
 
     case HeaterLoadEnterKey:
@@ -3661,19 +3719,26 @@ void RTSSHOW::RTS_HandleData(void)
     case Advance_K_Key:  
       planner.extruder_advance_K[0] = ((float)recdat.data[0])/100;
       RTS_SndData(planner.extruder_advance_K[0] * 100, ADVANCE_K_SET);
+      if(!card.isPrinting()){
+        settings.save();
+      }      
       break;
     case XShapingFreqsetEnterKey:
       x_frequency = ((float)recdat.data[0])/100;
       stepper.set_shaping_frequency(X_AXIS, x_frequency);      
       RTS_SndData(stepper.get_shaping_frequency(X_AXIS) * 100, SHAPING_X_FREQUENCY_VP);
-      settings.save();
+      if(!card.isPrinting()){
+        settings.save();
+      }
       break;
 
     case YShapingFreqsetEnterKey:
       y_frequency = ((float)recdat.data[0])/100;
       stepper.set_shaping_frequency(Y_AXIS, y_frequency);      
       RTS_SndData(stepper.get_shaping_frequency(Y_AXIS) * 100, SHAPING_Y_FREQUENCY_VP);
-      settings.save();      
+      if(!card.isPrinting()){
+        settings.save();
+      }     
       break;
 
     case XShapingZetasetEnterKey:  
@@ -3681,7 +3746,9 @@ void RTSSHOW::RTS_HandleData(void)
       x_zeta = ((float)recdat.data[0])/100;
       stepper.set_shaping_damping_ratio(X_AXIS, x_zeta);      
       RTS_SndData(stepper.get_shaping_damping_ratio(X_AXIS) * 100, SHAPING_X_ZETA_VP);
-      settings.save(); 
+      if(!card.isPrinting()){
+        settings.save();
+      }
       break;
 
     case YShapingZetasetEnterKey:  
@@ -3689,7 +3756,9 @@ void RTSSHOW::RTS_HandleData(void)
       y_zeta = ((float)recdat.data[0])/100;
       stepper.set_shaping_damping_ratio(Y_AXIS, y_zeta);      
       RTS_SndData(stepper.get_shaping_damping_ratio(Y_AXIS) * 100, SHAPING_Y_ZETA_VP);
-      settings.save(); 
+      if(!card.isPrinting()){
+        settings.save();
+      }
       break;   
 
     case XMinPosEepromEnterKey:
@@ -4599,7 +4668,11 @@ void RTS_AutoBedLevelPage(void)
           #if GRID_MAX_POINTS_X == 7
             rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
             change_page_font = 94;
-          #endif  
+          #endif
+          #if GRID_MAX_POINTS_X == 9
+            rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+            change_page_font = 96;
+          #endif            
           #if GRID_MAX_POINTS_X == 10
             rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
             change_page_font = 95;
@@ -4659,7 +4732,11 @@ else if(waitway == 15)
     #if GRID_MAX_POINTS_X == 7
       rtscheck.RTS_SndData(ExchangePageBase + 94, ExchangepageAddr);
       change_page_font = 94;
-    #endif  
+    #endif
+    #if GRID_MAX_POINTS_X == 9
+      rtscheck.RTS_SndData(ExchangePageBase + 96, ExchangepageAddr);
+      change_page_font = 96;
+    #endif       
     #if GRID_MAX_POINTS_X == 10
       rtscheck.RTS_SndData(ExchangePageBase + 95, ExchangepageAddr);
       change_page_font = 95;
