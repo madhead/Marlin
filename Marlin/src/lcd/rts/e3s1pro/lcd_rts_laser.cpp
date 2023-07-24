@@ -1494,9 +1494,6 @@ void EachMomentUpdateLaser(void)
       }
       return;
     }
-   #endif
-
-   #if ENABLED(POWER_LOSS_RECOVERY)
     else if((power_off_type_yes == 0) && (recovery.recovery_flag == false))
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);

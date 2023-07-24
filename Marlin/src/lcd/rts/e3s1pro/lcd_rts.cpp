@@ -62,8 +62,6 @@
 
 #if ENABLED(POWER_LOSS_RECOVERY)
   #include "../../../feature/powerloss.h"
-#elif ENABLED(CREALITY_POWER_LOSS)
-  #include "../../feature/PRE01_Power_loss/PRE01_Power_loss.h"
 #endif
 
 #if HAS_CUTTER
@@ -104,7 +102,7 @@ float x_zeta = 0.0;
 float y_zeta = 0.0;
 #endif
 
-int power_off_type_yes = 0;
+bool power_off_type_yes = false;
 int old_leveling = 0;
 int bltouch_tramming = 0;
 int leveling_running = 0;
@@ -167,10 +165,16 @@ DB RTSSHOW::snddat;
 uint8_t lang = 2; 
 bool lcd_sd_status;
 
-int rec_dat_temp_last_x = 0;
-int rec_dat_temp_last_y = 0;
-int rec_dat_temp_real_x = 0;
-int rec_dat_temp_real_y = 0;
+float rec_dat_temp_last_x = 0.0;
+float rec_dat_temp_last_y = 0.0;
+float rec_dat_temp_real_x = 0.0;
+float rec_dat_temp_real_y = 0.0;
+
+const float THRESHOLD_VALUE_X = 101.0;
+const size_t FIRST_ELEMENT_INDEX_X = 0;
+
+const float THRESHOLD_VALUE_Y = 101.0;
+const size_t FIRST_ELEMENT_INDEX_Y = 0;
 
 int FilenamesCount = 0;
 
@@ -355,16 +359,19 @@ bool RTSSHOW::RTS_SD_Detected() {
   return state;
 }
 
-void RTSSHOW::RTS_SDCardUpate() {
+void RTSSHOW::RTS_SDCardUpdate() {
   const bool sd_status = RTS_SD_Detected();
 
+SERIAL_ECHO_MSG("sd_status SDCARDUPDATE: ", sd_status);
+SERIAL_ECHO_MSG("lcd_sd_status SDCARDUPDATE: ", lcd_sd_status);
   if (sd_status != lcd_sd_status) {
     if (sd_status) {
+SERIAL_ECHO_MSG("sd_status inside if: ", sd_status);      
       // SD card power on
       RTS_SDCardInit();
     }
     else {
-
+SERIAL_ECHO_MSG("sd_status inside else: ", sd_status); 
       if (PoweroffContinue /*|| print_job_timer.isRunning()*/) return;
 
       card.release();
@@ -1117,7 +1124,6 @@ void RTSSHOW::RTS_SDcard_Stop(void)
   thermalManager.zero_fan_speeds();
   wait_for_heatup = wait_for_user = false;
   PoweroffContinue = false;
-
   sd_printing_autopause = false;
   if (card.flag.mounted)
   {
@@ -1799,6 +1805,29 @@ void RTSSHOW::RTS_HandleData(void)
         Update_Time_Value = 0;
         sdcard_pause_check = true;
       }
+      else if (recdat.data[0] == 4) {
+        //if (card.flag.mounted)
+        if (IS_SD_INSERTED()) { //有卡
+          lcd_sd_status = true;
+          card.startOrResumeFilePrinting();
+          print_job_timer.start();
+          Update_Time_Value = 0;
+          sdcard_pause_check = true;
+          sd_printing_autopause = false;
+
+          RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
+          change_page_font = 10;
+          gcode.process_subcommands_now(F("M24"));
+        }
+        else {
+          CardUpdate = true;
+          rtscheck.RTS_SDCardUpdate();
+          //card.mount();
+          //SERIAL_ECHO_MSG("ROCK_MOVE_CARD1111\n");
+          RTS_SndData(ExchangePageBase + 47, ExchangepageAddr);
+          change_page_font = 47;
+        }
+      }      
       break;
 
     case ZoffsetEnterKey:
@@ -3037,12 +3066,18 @@ void RTSSHOW::RTS_HandleData(void)
     case XaxismoveKeyHomeOffset:
       waitway = 4;
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
+        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", ((float)recdat.data[0]) ); 
+        if (rec_dat_temp_last_x >= THRESHOLD_VALUE_X) {
+          SERIAL_ECHO_MSG("rec_dat_temp_last_x: ", rec_dat_temp_last_x);
+        }
       #endif
-      if (recdat.data[0] >= 101) {
-        recdat.data[0] = rec_dat_temp_last_x;
-      }
-      current_position[X_AXIS] = ((float)recdat.data[0]) / 10;      
+
+      if (recdat.data[FIRST_ELEMENT_INDEX_X] >= THRESHOLD_VALUE_X) {
+        SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_X]);
+        recdat.data[FIRST_ELEMENT_INDEX_X] = rec_dat_temp_last_x;
+      }      
+      current_position[X_AXIS] = ((float)recdat.data[0]) / 10;  
+      SERIAL_ECHO_MSG("current_position: ", current_position[X_AXIS]);           
       rec_dat_temp_real_x = ((float)recdat.data[0]) / 10;
       rec_dat_temp_last_x = recdat.data[0];                              
       RTS_line_to_current(X_AXIS);
@@ -3058,9 +3093,13 @@ void RTSSHOW::RTS_HandleData(void)
       waitway = 4;
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
         SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
+        if (rec_dat_temp_last_y >= THRESHOLD_VALUE_Y) {
+          SERIAL_ECHO_MSG("rec_dat_temp_last_y: ", rec_dat_temp_last_y);
+        }
       #endif
-      if (recdat.data[0] >= 101) {
-        recdat.data[0] = rec_dat_temp_last_y;
+      if (recdat.data[FIRST_ELEMENT_INDEX_Y] >= THRESHOLD_VALUE_Y) {
+        SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_Y]);
+        recdat.data[FIRST_ELEMENT_INDEX_Y] = rec_dat_temp_last_y;
       }
       current_position[Y_AXIS] = ((float)recdat.data[0]) / 10;      
       rec_dat_temp_real_y = ((float)recdat.data[0]) / 10;
@@ -3242,7 +3281,7 @@ void RTSSHOW::RTS_HandleData(void)
       {
 
       #if ENABLED(POWER_LOSS_RECOVERY)
-        if(recovery.info.recovery_flag)
+        if(recovery.recovery_flag && PoweroffContinue)
         {
           power_off_type_yes = 1;
           Update_Time_Value = 0;
@@ -4590,13 +4629,13 @@ void RTSSHOW::languagedisplayUpdate(void)
 void RTSUpdate(void)
 {
   // Check the status of card
-  rtscheck.RTS_SDCardUpate();
+  rtscheck.RTS_SDCardUpdate();
 
 	sd_printing = IS_SD_PRINTING();
 	card_insert_st = IS_SD_INSERTED() ;
-
-	if((card_insert_st == false) && (sd_printing == true)){
+	if((card_insert_st == 0) && (sd_printing == 1)){
 		rtscheck.RTS_SndData(ExchangePageBase + 47, ExchangepageAddr);	
+    change_page_font = 47;    
 		rtscheck.RTS_SndData(0, CHANGE_SDCARD_ICON_VP);
 		card.pauseSDPrint();
 		print_job_timer.pause();
@@ -4609,7 +4648,6 @@ void RTSUpdate(void)
 		rtscheck.RTS_SndData((int)card_insert_st, CHANGE_SDCARD_ICON_VP);
 		last_card_insert_st = card_insert_st;
 	}
-
 
   EachMomentUpdate();
   // wait to receive massage and response
