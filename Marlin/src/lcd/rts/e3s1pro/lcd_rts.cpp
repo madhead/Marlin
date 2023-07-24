@@ -362,16 +362,12 @@ bool RTSSHOW::RTS_SD_Detected() {
 void RTSSHOW::RTS_SDCardUpdate() {
   const bool sd_status = RTS_SD_Detected();
 
-SERIAL_ECHO_MSG("sd_status SDCARDUPDATE: ", sd_status);
-SERIAL_ECHO_MSG("lcd_sd_status SDCARDUPDATE: ", lcd_sd_status);
   if (sd_status != lcd_sd_status) {
     if (sd_status) {
-SERIAL_ECHO_MSG("sd_status inside if: ", sd_status);      
       // SD card power on
       RTS_SDCardInit();
     }
     else {
-SERIAL_ECHO_MSG("sd_status inside else: ", sd_status); 
       if (PoweroffContinue /*|| print_job_timer.isRunning()*/) return;
 
       card.release();
@@ -697,7 +693,7 @@ void RTSSHOW::RTS_Init(void)
   delay(5);
   RTS_SndData(lang == 1 ? CORP_WEBSITE_C : CORP_WEBSITE_E, WEBSITE_ABOUT_TEXT_VP);
 
-  RTS_SndData(recovery.enabled ? 0 : 1, POWERCONTINUE_CONTROL_ICON_VP);
+  RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
   RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
 
   if (g_soundSetOffOn == 2) {
@@ -1332,6 +1328,8 @@ void RTSSHOW::RTS_HandleData(void)
         }
       }
       else if (recdat.data[0] == 8) {
+        RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+        RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);        
         RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);         
         RTS_SndData(ExchangePageBase + 1, ExchangepageAddr);
         #if ENABLED(GCODE_PREVIEW_ENABLED)
@@ -1351,6 +1349,7 @@ void RTSSHOW::RTS_HandleData(void)
       }
       else if(recdat.data[0] == 9)
       {
+        RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
         RTS_SndData(ExchangePageBase + 11, ExchangepageAddr);
         change_page_font = 11;
       }else if(recdat.data[0] == 0x0A)
@@ -1463,6 +1462,9 @@ void RTSSHOW::RTS_HandleData(void)
       {
         if(card.isPrinting())
         {
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
         }
@@ -1500,16 +1502,23 @@ void RTSSHOW::RTS_HandleData(void)
       }      
        else if(recdat.data[0] == 9)
        {
-         if(recovery.enabled)
-         {
-           RTS_SndData(1, POWERCONTINUE_CONTROL_ICON_VP);
-           recovery.enabled = false;
-         }
-         else
-         {
-           RTS_SndData(0, POWERCONTINUE_CONTROL_ICON_VP);
-           recovery.enabled = true;
-         }
+        if (recovery.enabled) {
+          RTS_SndData(102, POWERCONTINUE_CONTROL_ICON_VP);
+          recovery.enabled = false;
+          if (card.flag.mounted) { // rock_20220701 Fix the bug that the switch is always on when the power is off
+            #if ENABLED(POWER_LOSS_RECOVERY)
+              //card.removeJobRecoveryFile();
+              if (card.jobRecoverFileExists())
+                //recovery.init(); // Do not clear power-off information
+                card.removeFile(recovery.filename);
+            #endif
+          }
+        }
+        else {
+          RTS_SndData(101, POWERCONTINUE_CONTROL_ICON_VP);
+          recovery.enabled = true;
+          recovery.save(true);
+        }
       }
       break;
 
@@ -1545,6 +1554,9 @@ void RTSSHOW::RTS_HandleData(void)
       {
         if(card.isPrinting())
         {
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
         }
@@ -1558,7 +1570,7 @@ void RTSSHOW::RTS_HandleData(void)
       {
         if(!planner.has_blocks_queued())
         {
-          if(PoweroffContinue == true)
+          if(PoweroffContinue)
           {                      
             runout.filament_ran_out = false;
             RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
@@ -1597,7 +1609,7 @@ void RTSSHOW::RTS_HandleData(void)
             RTS_SDcard_Stop();      
           
           }
-          else if(PoweroffContinue == false)
+          else if(!PoweroffContinue)
           {
             PoweroffContinue = true;
             runout.filament_ran_out = false;
@@ -1647,7 +1659,7 @@ void RTSSHOW::RTS_HandleData(void)
       }      
       else if(recdat.data[0] == 5)
       {
-        if(PoweroffContinue == true)
+        if(PoweroffContinue)
         {
           RTS_SndData(ExchangePageBase + 40, ExchangepageAddr);
           change_page_font = 40;
@@ -1671,11 +1683,15 @@ void RTSSHOW::RTS_HandleData(void)
       {
         if(card.isPrinting() && (thermalManager.temp_hotend[0].celsius > (thermalManager.temp_hotend[0].target - 5)) && (thermalManager.temp_bed.celsius > (thermalManager.temp_bed.target - 3)))
         {
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 11, ExchangepageAddr);
           change_page_font = 11;
         }
         else 
         {
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
         }
@@ -1687,6 +1703,9 @@ void RTSSHOW::RTS_HandleData(void)
         }
         else 
         {
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
           break;
@@ -1713,6 +1732,9 @@ void RTSSHOW::RTS_HandleData(void)
       {
         if(card.isPrinting())
         {
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
         }
@@ -1736,6 +1758,9 @@ void RTSSHOW::RTS_HandleData(void)
           }
         #endif
 
+        RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+        RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+        RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
         RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
         change_page_font = 10;
 
@@ -1797,6 +1822,9 @@ void RTSSHOW::RTS_HandleData(void)
         queue.inject_P(PSTR("M108"));
         runout.reset();
 
+        RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+        RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+        RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
         RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
         change_page_font = 10;
 
@@ -1814,7 +1842,9 @@ void RTSSHOW::RTS_HandleData(void)
           Update_Time_Value = 0;
           sdcard_pause_check = true;
           sd_printing_autopause = false;
-
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
           gcode.process_subcommands_now(F("M24"));
@@ -3281,10 +3311,14 @@ void RTSSHOW::RTS_HandleData(void)
       {
 
       #if ENABLED(POWER_LOSS_RECOVERY)
-        if(recovery.recovery_flag && PoweroffContinue)
-        {
+        //if(recovery.recovery_flag && PoweroffContinue)
+        //{
+          PoweroffContinue = true;
           power_off_type_yes = true;
           Update_Time_Value = 0;
+          RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+          RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+          RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);          
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
 
@@ -3300,12 +3334,11 @@ void RTSSHOW::RTS_HandleData(void)
           // recovery.resume();
           queue.enqueue_now_P(PSTR("M1000"));
 
-          PoweroffContinue = true;
           sdcard_pause_check = true;
           zprobe_zoffset = probe.offset.z;
           RTS_SndData(zprobe_zoffset * 100, AUTO_BED_LEVEL_ZOFFSET_VP);
           RTS_SndData(feedrate_percentage, PRINT_SPEED_RATE_VP);
-        }
+        //}
       #endif
       }
       else if(recdat.data[0] == 2)
@@ -3816,7 +3849,7 @@ void RTSSHOW::RTS_HandleData(void)
       home_offset.x = home_offset_x_temp;
 
       #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("home_offset_x_temp\n", home_offset_x_temp);   
+        SERIAL_ECHO_MSG("home_offset_x_temp\n", home_offset_x_temp);
         SERIAL_ECHOLNPGM("home_offset_x_temp enterkey: ", home_offset_x_temp);
       #endif 
         
@@ -4265,9 +4298,6 @@ void EachMomentUpdate(void)
       }
       return;
     }
-  #endif
-
-  #if ENABLED(POWER_LOSS_RECOVERY)
     else if(!power_off_type_yes && !recovery.recovery_flag)
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
@@ -4394,7 +4424,7 @@ void EachMomentUpdate(void)
           last_remaining_time = ui.get_remaining_time();
         }
 
-      if(pause_action_flag && (false == sdcard_pause_check) && printingIsPaused() && !planner.has_blocks_queued())
+      if(pause_action_flag && !sdcard_pause_check && printingIsPaused() && !planner.has_blocks_queued())
       {
         pause_action_flag = false;
         queue.enqueue_now_P(PSTR("G0 F3000 X0 Y0"));
@@ -4406,7 +4436,7 @@ void EachMomentUpdate(void)
       rtscheck.RTS_SndData(thermalManager.temp_bed.celsius, BED_CURRENT_TEMP_VP);
 
       #if ENABLED(SDSUPPORT)
-        if((false == sdcard_pause_check) && (false == card.isPrinting()) && !planner.has_blocks_queued())
+        if(!sdcard_pause_check && (false == card.isPrinting()) && !planner.has_blocks_queued())
         {
           if (card.flag.mounted)
           {
@@ -4633,7 +4663,7 @@ void RTSUpdate(void)
 
 	sd_printing = IS_SD_PRINTING();
 	card_insert_st = IS_SD_INSERTED() ;
-	if((card_insert_st == 0) && (sd_printing == 1)){
+	if(!card_insert_st && sd_printing){
 		rtscheck.RTS_SndData(ExchangePageBase + 47, ExchangepageAddr);	
     change_page_font = 47;    
 		rtscheck.RTS_SndData(0, CHANGE_SDCARD_ICON_VP);
@@ -4645,7 +4675,7 @@ void RTSUpdate(void)
 	}
 
 	if(last_card_insert_st != card_insert_st){
-		rtscheck.RTS_SndData((int)card_insert_st, CHANGE_SDCARD_ICON_VP);
+		rtscheck.RTS_SndData(card_insert_st ? 1 : 0, CHANGE_SDCARD_ICON_VP);
 		last_card_insert_st = card_insert_st;
 	}
 
@@ -4811,6 +4841,9 @@ void RTS_CommandPause(void)
 {
   if(card.isPrinting())
   {
+        rtscheck.RTS_SndData(planner.flow_percentage[0], E0_SET_FLOW_VP);
+        rtscheck.RTS_SndData(recovery.enabled ? 101 : 102, POWERCONTINUE_CONTROL_ICON_VP);
+        rtscheck.RTS_SndData(runout.enabled ? 101 : 102, FILAMENT_CONTROL_ICON_VP);    
         rtscheck.RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
         change_page_font = 10;
     // card.pauseSDPrint();

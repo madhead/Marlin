@@ -95,7 +95,7 @@
     #define MARLIN_EEPROM_SIZE                0x800  // 2Kb
   #endif
 
-  #define EEPROM_PLR
+  //#define EEPROM_PLR
   #if ENABLED(EEPROM_PLR)
     #define PLR_ADDR 800
   #endif

@@ -125,7 +125,7 @@ void GcodeSuite::M104_M109(const bool isM109) {
     
     #if ENABLED(E3S1PRO_RTS)
       // to be fixed
-      //temphot = temp;
+      temphot = temp;
     #endif
     
     #if ENABLED(DUAL_X_CARRIAGE)
