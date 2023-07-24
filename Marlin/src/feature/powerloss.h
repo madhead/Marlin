@@ -105,10 +105,6 @@ typedef struct {
     #endif
   #endif
 
-  #if ENABLED(E3S1PRO_RTS)
-    uint8_t recovery_flag;
-  #endif
-
   // SD Filename and position
   char sd_filename[MAXPATHNAMELENGTH];
   volatile uint32_t sdpos;
@@ -151,6 +147,10 @@ class PrintJobRecovery {
 
     #if HAS_DWIN_E3V2_BASIC
       static bool dwin_flag;
+    #endif
+
+    #if ENABLED(E3S1PRO_RTS)
+      static bool recovery_flag;
     #endif
 
     static void init();

@@ -559,7 +559,7 @@ class RTSSHOW
     int RTS_RecData2();
     void RTS_SDCardInit(void);
     bool RTS_SD_Detected(void);
-    void RTS_SDCardUpate(void);
+    void RTS_SDCardUpdate(void);
     void languagedisplayUpdate(void);
     void RTS_SndData(void);
     void RTS_SndData(const String &, unsigned long, unsigned char = VarAddr_W);

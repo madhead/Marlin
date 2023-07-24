@@ -145,7 +145,7 @@ void RTSSHOW::RTS_HandleData_Laser(void)
       {
         CardUpdate = true;
         CardRecbuf.recordcount = -1;
-        RTS_SDCardUpate();
+        RTS_SDCardUpdate();
         RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
         change_page_font = 52;
         EEPROM_SAVE_LANGUAGE();
@@ -683,7 +683,7 @@ void RTSSHOW::RTS_HandleData_Laser(void)
       {
 
       #if ENABLED(POWER_LOSS_RECOVERY)
-        if(recovery.info.recovery_flag)
+        if(recovery.recovery_flag)
         {
           power_off_type_yes = 1;
           Update_Time_Value = 0;
@@ -691,22 +691,6 @@ void RTSSHOW::RTS_HandleData_Laser(void)
           change_page_font = 10;
           // recovery.resume();
           queue.enqueue_now_P(PSTR("M1000"));
-
-          PoweroffContinue = true;
-          sdcard_pause_check = true;
-          zprobe_zoffset = probe.offset.z;
-          RTS_SndData(zprobe_zoffset * 100, AUTO_BED_LEVEL_ZOFFSET_VP);
-          RTS_SndData(feedrate_percentage, PRINT_SPEED_RATE_VP);
-        }
-      #elif ENABLED(CREALITY_POWER_LOSS)
-        if(pre01_power_loss.info.recovery_flag)
-        {
-          power_off_type_yes = 1;
-          Update_Time_Value = 0;
-          RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
-          change_page_font = 10;
-          pre01_power_loss.resume();  //�ָ�SD����ӡ
-          // queue.enqueue_now_P(PSTR("M1000"));
 
           PoweroffContinue = true;
           sdcard_pause_check = true;
@@ -1300,7 +1284,7 @@ void RTSSHOW::RTS_HandleData_Laser(void)
 
         CardUpdate = true;
         CardRecbuf.recordcount = -1;
-        RTS_SDCardUpate();
+        RTS_SDCardUpdate();
         RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
         change_page_font = 52;
 
@@ -1484,7 +1468,7 @@ void EachMomentUpdateLaser(void)
   {
    #if ENABLED(POWER_LOSS_RECOVERY)
     // print the file before the power is off.
-    if((power_off_type_yes == 0) && lcd_sd_status && (recovery.info.recovery_flag == true))
+    if((power_off_type_yes == 0) && lcd_sd_status && (recovery.recovery_flag == true))
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
       if(startprogress < 100)
@@ -1510,136 +1494,10 @@ void EachMomentUpdateLaser(void)
       }
       return;
     }
-   #elif ENABLED(CREALITY_POWER_LOSS)
-    // print the file before the power is off.
-    if((power_off_type_yes == 0) && lcd_sd_status && (pre01_power_loss.info.recovery_flag == true))
-    {
-      rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
-      if(startprogress < 100)
-      {
-        rtscheck.RTS_SndData(startprogress, START_PROCESS_ICON_VP);
-      }
-      // delay(30);
-      if((startprogress += 1) > 100)
-      {
-        rtscheck.RTS_SndData(StartSoundSet, SoundAddr);
-        power_off_type_yes = 1;
-        for(uint16_t i = 0;i < CardRecbuf.Filesum;i ++) 
-        {
-          if(!strcmp(CardRecbuf.Cardfilename[i], &pre01_power_loss.info.sd_filename[1]))
-          {
-            rtscheck.RTS_SndData(CardRecbuf.Cardshowfilename[i], PRINT_FILE_TEXT_VP);
-            rtscheck.RTS_SndData(CardRecbuf.Cardshowfilename[i], SELECT_FILE_TEXT_VP);
-            rtscheck.RTS_SndData(ExchangePageBase + 27, ExchangepageAddr);
-            change_page_font = 27;
-            break;
-          }
-        }
-      }
-      return;
-    }
    #endif
 
    #if ENABLED(POWER_LOSS_RECOVERY)
-    else if((power_off_type_yes == 0) && (recovery.info.recovery_flag == false))
-    {
-      rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
-      if(startprogress < 100)
-      {
-        rtscheck.RTS_SndData(startprogress, START_PROCESS_ICON_VP);
-      }
-      // delay(30);
-      if((startprogress += 1) > 100)
-      {
-        rtscheck.RTS_SndData(StartSoundSet, SoundAddr);
-        power_off_type_yes = 1;
-        Update_Time_Value = RTS_UPDATE_VALUE;
-        
-        if(laser_device.is_laser_device()){
-          rtscheck.RTS_SndData(ExchangePageBase + 51, ExchangepageAddr);
-          change_page_font = 51;
-        }else{
-          rtscheck.RTS_SndData(ExchangePageBase + 1, ExchangepageAddr);
-          change_page_font = 1;
-        }
-        // rtscheck.RTS_SndData(ExchangePageBase + 51, ExchangepageAddr);
-        // change_page_font = 51;
-      }
-      return;
-    }
-    else
-    {
-      // need to optimize
-      static unsigned char last_cardpercentValue = 100;
-      if(card.isPrinting() && (last_cardpercentValue != card.percentDone()))
-      {
-        duration_t elapsed = print_job_timer.duration();
-        
-        rtscheck.RTS_SndData(elapsed.value / 3600, PRINT_TIME_HOUR_VP);
-        rtscheck.RTS_SndData((elapsed.value % 3600) / 60, PRINT_TIME_MIN_VP);
-        if((unsigned char) card.percentDone() > 0)
-        {
-          Percentrecord = card.percentDone();
-          if(Percentrecord <= 100)
-          {
-            rtscheck.RTS_SndData((unsigned char)Percentrecord, PRINT_PROCESS_ICON_VP);
-          }
-        }
-        else
-        {
-          rtscheck.RTS_SndData(0, PRINT_PROCESS_ICON_VP);
-        }
-        rtscheck.RTS_SndData((unsigned char)card.percentDone(), PRINT_PROCESS_VP);
-        last_cardpercentValue = card.percentDone();
-        rtscheck.RTS_SndData(10 * current_position[Z_AXIS], AXIS_Z_COORD_VP);
-      }
-
-      if(pause_action_flag && (false == sdcard_pause_check) && printingIsPaused() && !planner.has_blocks_queued())
-      {
-        pause_action_flag = false;
-        //queue.enqueue_now_P(PSTR("G0 F3000 X0 Y0"));
-        laser_device.power = cutter.power;
-        //SERIAL_ECHOPAIR("laser_device.power=", laser_device.power);
-        cutter.apply_power(0);
-
-        rtscheck.RTS_SndData(ExchangePageBase + 61, ExchangepageAddr);
-        change_page_font = 61;
-        waitway = 0;
-      }
-
-      #if ENABLED(SDSUPPORT)
-        if((false == sdcard_pause_check) && (false == card.isPrinting()) && !planner.has_blocks_queued())
-        {
-          if(CardReader::flag.mounted)
-          {
-            rtscheck.RTS_SndData(51, CHANGE_SDCARD_ICON_VP);
-          }
-          else
-          {
-            rtscheck.RTS_SndData(0, CHANGE_SDCARD_ICON_VP);
-          }
-        }
-      #endif
-
-      if( marlin_state == MF_RUNNING && first_start_laser == true)
-      {
-        char str_1[7],cmd[20]={0};
-        first_start_laser = false;
-        sprintf_P(cmd, "G92.9 Z%s\n",  dtostrf(laser_device.laser_z_axis_high, 1, 2, str_1));
-        //SERIAL_ECHOPGM(cmd);
-        queue.inject(cmd);
-
-        rtscheck.RTS_SndData((float)(10 * laser_device.laser_z_axis_high), AXIS_Z_COORD_VP);
-        delay(1);
-
-      }else if(laser_device.laser_z_axis_high != current_position.z && first_start_laser == false)
-      {
-        laser_device.save_z_axis_high_to_eeprom(current_position.z);
-      }
-      
-    }
-   #elif ENABLED(CREALITY_POWER_LOSS)
-    else if((power_off_type_yes == 0) && (pre01_power_loss.info.recovery_flag == false))
+    else if((power_off_type_yes == 0) && (recovery.recovery_flag == false))
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
       if(startprogress < 100)
@@ -1745,7 +1603,7 @@ void EachMomentUpdateLaser(void)
 void RTSUpdateLaser(void)
 {
   // Check the status of card
-  rtscheck.RTS_SDCardUpate();
+  rtscheck.RTS_SDCardUpdate();
 
   EachMomentUpdateLaser();
   // wait to receive massage and response
