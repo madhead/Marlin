@@ -7,6 +7,8 @@
 
 #include "../../../inc/MarlinConfig.h"
 
+extern bool power_off_type_yes;
+
 // #pragma once
 /*********************************/
 

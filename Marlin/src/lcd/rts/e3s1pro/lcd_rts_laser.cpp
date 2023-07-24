@@ -685,7 +685,7 @@ void RTSSHOW::RTS_HandleData_Laser(void)
       #if ENABLED(POWER_LOSS_RECOVERY)
         if(recovery.recovery_flag)
         {
-          power_off_type_yes = 1;
+          power_off_type_yes = true;
           Update_Time_Value = 0;
           RTS_SndData(ExchangePageBase + 10, ExchangepageAddr);
           change_page_font = 10;
@@ -1468,7 +1468,7 @@ void EachMomentUpdateLaser(void)
   {
    #if ENABLED(POWER_LOSS_RECOVERY)
     // print the file before the power is off.
-    if((power_off_type_yes == 0) && lcd_sd_status && (recovery.recovery_flag == true))
+    if(!power_off_type_yes && lcd_sd_status && (recovery.recovery_flag == true))
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
       if(startprogress < 100)
@@ -1479,7 +1479,7 @@ void EachMomentUpdateLaser(void)
       if((startprogress += 1) > 100)
       {
         rtscheck.RTS_SndData(StartSoundSet, SoundAddr);
-        power_off_type_yes = 1;
+        power_off_type_yes = true;
         for(uint16_t i = 0;i < CardRecbuf.Filesum;i ++) 
         {
           if(!strcmp(CardRecbuf.Cardfilename[i], &recovery.info.sd_filename[1]))
@@ -1494,7 +1494,7 @@ void EachMomentUpdateLaser(void)
       }
       return;
     }
-    else if((power_off_type_yes == 0) && (recovery.recovery_flag == false))
+    else if(!power_off_type_yes && (recovery.recovery_flag == false))
     {
       rtscheck.RTS_SndData(ExchangePageBase, ExchangepageAddr);
       if(startprogress < 100)
@@ -1505,7 +1505,7 @@ void EachMomentUpdateLaser(void)
       if((startprogress += 1) > 100)
       {
         rtscheck.RTS_SndData(StartSoundSet, SoundAddr);
-        power_off_type_yes = 1;
+        power_off_type_yes = true;
         Update_Time_Value = RTS_UPDATE_VALUE;
         
         if(laser_device.is_laser_device()){

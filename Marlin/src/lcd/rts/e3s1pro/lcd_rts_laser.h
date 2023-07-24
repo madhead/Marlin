@@ -108,7 +108,7 @@ extern bool StartPrint_flag;
   extern float last_zoffset;
 #endif
 
-extern int power_off_type_yes;
+extern bool power_off_type_yes;
 
 //运动相关参数设置
 // extern const float manual_feedrate_mm_m[];
