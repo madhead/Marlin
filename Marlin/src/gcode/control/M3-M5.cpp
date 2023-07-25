@@ -28,6 +28,10 @@
 #include "../../feature/spindle_laser.h"
 #include "../../module/planner.h"
 
+#if ENABLED(E3S1PRO_RTS)
+  #include "../../lcd/rts/e3s1pro/lcd_rts.h"
+#endif
+
 /**
  * Laser:
  *  M3 - Laser ON/Power (Ramped power)
@@ -92,10 +96,18 @@ void GcodeSuite::M3_M4(const bool is_M4) {
   #endif
 
   auto get_s_power = [] {
-    float u = 0.0f;
+    #if ENABLED(LASER_FEATURE)
+      float u = cutter.unitPower;
+    #else
+      float u = 0.0f;
+    #endif
     if (parser.seenval('S')) {
       const float v = parser.value_float();
-      u = TERN(LASER_POWER_TRAP, v, cutter.power_to_range(v));
+      #if ENABLED(LASER_FEATURE)
+        u = laser_device.power16_to_8(v);
+      #else
+        u = TERN(LASER_POWER_TRAP, v, cutter.power_to_range(v));
+      #endif
     }
     else if (cutter.cutter_mode == CUTTER_MODE_STANDARD)
       u = cutter.cpwr_to_upwr(SPEED_POWER_STARTUP);
