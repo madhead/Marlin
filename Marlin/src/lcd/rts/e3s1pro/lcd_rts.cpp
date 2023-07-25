@@ -1488,16 +1488,16 @@ void RTSSHOW::RTS_HandleData(void)
       }
       else if(recdat.data[0] == 8)
        {
-         if(runout.enabled)
-         {
-           RTS_SndData(102, FILAMENT_CONTROL_ICON_VP);
-           runout.enabled = false;
-         }
-         else
-         {
-           RTS_SndData(101, FILAMENT_CONTROL_ICON_VP);
-           runout.enabled = true;
-         }
+        if(runout.enabled)
+        {
+          RTS_SndData(102, FILAMENT_CONTROL_ICON_VP);
+          runout.enabled = false;
+        }
+        else
+        {
+          RTS_SndData(101, FILAMENT_CONTROL_ICON_VP);
+          runout.enabled = true;
+        }
         settings.save();         
       }      
        else if(recdat.data[0] == 9)
@@ -1519,6 +1519,7 @@ void RTSSHOW::RTS_HandleData(void)
           recovery.enabled = true;
           recovery.save(true);
         }
+        settings.save();
       }
       break;
 
