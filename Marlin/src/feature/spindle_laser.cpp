@@ -65,34 +65,29 @@ cutter_frequency_t SpindleLaser::frequency;                           // PWM fre
  * Init the cutter to a safe OFF state
  */
 void SpindleLaser::init() {
-  #if ENABLED(LASER_FEATURE)
-    _SET_OUTPUT(LASER_SOFT_PWM_PIN);
-    laser_device.init_device();
-  #else  
-    #if ENABLED(SPINDLE_SERVO)
-      servo[SPINDLE_SERVO_NR].move(SPINDLE_SERVO_MIN);
-    #elif PIN_EXISTS(SPINDLE_LASER_ENA)
-      OUT_WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE);    // Init spindle to off
-    #endif
-    #if ENABLED(SPINDLE_CHANGE_DIR)
-      OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR);                   // Init rotation to clockwise (M3)
-    #endif
-    #if ENABLED(HAL_CAN_SET_PWM_FREQ) && SPINDLE_LASER_FREQUENCY
-      frequency = SPINDLE_LASER_FREQUENCY;
-      hal.set_pwm_frequency(pin_t(SPINDLE_LASER_PWM_PIN), SPINDLE_LASER_FREQUENCY);
-    #endif
-    #if ENABLED(SPINDLE_LASER_USE_PWM)
-      SET_PWM(SPINDLE_LASER_PWM_PIN);
-      hal.set_pwm_duty(pin_t(SPINDLE_LASER_PWM_PIN), SPINDLE_LASER_PWM_OFF); // Set to lowest speed
-    #endif
-    #if ENABLED(AIR_EVACUATION)
-      OUT_WRITE(AIR_EVACUATION_PIN, !AIR_EVACUATION_ACTIVE);            // Init Vacuum/Blower OFF
-    #endif
-    #if ENABLED(AIR_ASSIST)
-      OUT_WRITE(AIR_ASSIST_PIN, !AIR_ASSIST_ACTIVE);                    // Init Air Assist OFF
-    #endif
-    TERN_(I2C_AMMETER, ammeter.init());                                 // Init I2C Ammeter
+  #if ENABLED(SPINDLE_SERVO)
+    servo[SPINDLE_SERVO_NR].move(SPINDLE_SERVO_MIN);
+  #elif PIN_EXISTS(SPINDLE_LASER_ENA)
+    OUT_WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE);    // Init spindle to off
   #endif
+  #if ENABLED(SPINDLE_CHANGE_DIR)
+    OUT_WRITE(SPINDLE_DIR_PIN, SPINDLE_INVERT_DIR);                   // Init rotation to clockwise (M3)
+  #endif
+  #if ENABLED(HAL_CAN_SET_PWM_FREQ) && SPINDLE_LASER_FREQUENCY
+    frequency = SPINDLE_LASER_FREQUENCY;
+    hal.set_pwm_frequency(pin_t(SPINDLE_LASER_PWM_PIN), SPINDLE_LASER_FREQUENCY);
+  #endif
+  #if ENABLED(SPINDLE_LASER_USE_PWM)
+    SET_PWM(SPINDLE_LASER_PWM_PIN);
+    hal.set_pwm_duty(pin_t(SPINDLE_LASER_PWM_PIN), SPINDLE_LASER_PWM_OFF); // Set to lowest speed
+  #endif
+  #if ENABLED(AIR_EVACUATION)
+    OUT_WRITE(AIR_EVACUATION_PIN, !AIR_EVACUATION_ACTIVE);            // Init Vacuum/Blower OFF
+  #endif
+  #if ENABLED(AIR_ASSIST)
+    OUT_WRITE(AIR_ASSIST_PIN, !AIR_ASSIST_ACTIVE);                    // Init Air Assist OFF
+  #endif
+  TERN_(I2C_AMMETER, ammeter.init());                                 // Init I2C Ammeter
 }
 
 #if ENABLED(SPINDLE_LASER_USE_PWM)

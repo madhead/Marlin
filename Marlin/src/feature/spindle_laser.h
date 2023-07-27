@@ -499,7 +499,7 @@ class spindle_laser_soft_pwm
 	void soft_pwm_init()
 	{
     _SET_OUTPUT(LASER_SOFT_PWM_PIN);
-		laser_timer_soft_pwm_init(LASER_TIMER_FREQUENCY);
+		laser_timer_soft_pwm_init();
 	}
 
   	void laser_power_start(const uint8_t power)
