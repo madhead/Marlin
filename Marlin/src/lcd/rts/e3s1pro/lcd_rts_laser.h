@@ -199,8 +199,6 @@ void RTS_AutoBedLevelPage(void);
 void RTS_MoveAxisHoming(void);
 void RTS_MoveParkNozzle(void);
 void RTS_CommandPause(void);
-
-
 void HMI_Area_Move(void);
 
 

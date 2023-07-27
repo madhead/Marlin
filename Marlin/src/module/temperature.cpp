@@ -41,7 +41,7 @@
   #include "../feature/cooler.h"
 #endif
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
   #include "../feature/spindle_laser.h"
 #endif
 

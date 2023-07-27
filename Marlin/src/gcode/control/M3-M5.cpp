@@ -96,30 +96,27 @@ void GcodeSuite::M3_M4(const bool is_M4) {
   #endif
 
   auto get_s_power = [] {
+    #if ENABLED(LASER_FEATURE)
+      float u = cutter.unitPower;
+    #else
+      float u;
+    #endif
     if (parser.seenval('S')) {
-      cutter.unitPower = parser.value_ushort();
-      // PWM implied and ranges from S0 to S180 for a positional servo. Typical use would be a pen up/down function.
-      #if ENABLED(SPINDLE_SERVO)
-        cutter.power = cutter.unitPower;
+      const float v = parser.value_float();
+      #if ENABLED(LASER_FEATURE)
+        u = laser_device.power16_to_8(v);
       #else
-        if (cutter.cutter_mode == CUTTER_MODE_STANDARD){ // PWM not implied, power converted to OCR from unit definition and min/max or on/off if not PWM.
-          if(laser_device.is_laser_device())
-          {
-              // 107011 激光模式下将S0-1000比例转换为S0-255
-              cutter.unitPower = laser_device.power16_to_8(cutter.unitPower);
-              //cutter.power= cutter.unitPower;
-          }else{ 
-            cutter.power = TERN(SPINDLE_LASER_PWM, cutter.power_to_range(cutter_power_t(cutter.unitPower)), cutter.unitPower > 0 ? 255 : 0);
-          }
-        }
+        u = TERN(LASER_POWER_TRAP, v, cutter.power_to_range(v));
       #endif
-      //cutter.menuPower = cutter.unitPower;
     }
-    else if (cutter.cutter_mode == CUTTER_MODE_STANDARD){
-      cutter.unitPower = cutter.cpwr_to_upwr(SPEED_POWER_STARTUP);
-    }
-    return cutter.unitPower;// cutter.unitPower;
+    else if (cutter.cutter_mode == CUTTER_MODE_STANDARD)
+      u = cutter.cpwr_to_upwr(SPEED_POWER_STARTUP);
 
+    cutter.menuPower = cutter.unitPower = u;
+
+    // PWM not implied, power converted to OCR from unit definition and on/off if not PWM.
+    cutter.power = TERN(SPINDLE_LASER_USE_PWM, cutter.upower_to_ocr(u), u > 0 ? 255 : 0);
+    return u;
   };
 
   if (cutter.cutter_mode == CUTTER_MODE_CONTINUOUS || cutter.cutter_mode == CUTTER_MODE_DYNAMIC) {  // Laser power in inline mode

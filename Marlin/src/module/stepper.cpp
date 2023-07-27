@@ -2277,7 +2277,7 @@ hal_timer_t Stepper::block_phase_isr() {
     // If current block is finished, reset pointer and finalize state
     if (step_events_completed >= step_event_count) {
 
-      #if ALL(E3S1PRO_RTS, HAS_CUTTER)
+      #if ALL(E3S1PRO_RTS, LASER_FEATURE)
           if(laser_device.is_laser_device())
           {
             cutter.apply_power(0);

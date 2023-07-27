@@ -227,7 +227,11 @@ void GcodeSuite::get_destination_from_command() {
           if (parser.seen('I')) cutter.set_enabled(true);       // This is set for backward LightBurn compatibility.
           if (parser.seenval('S')) {
             const float v = parser.value_float(),
+            #if ENABLED(LASER_FEATURE)
+                        u = laser_device.power16_to_8(v);
+            #else
                         u = TERN(LASER_POWER_TRAP, v, cutter.power_to_range(v));
+            #endif
             cutter.menuPower = cutter.unitPower = u;
             cutter.inline_power(TERN(SPINDLE_LASER_USE_PWM, cutter.upower_to_ocr(u), u > 0 ? 255 : 0));
           }
