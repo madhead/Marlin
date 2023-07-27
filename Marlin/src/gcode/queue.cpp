@@ -717,7 +717,7 @@ void GCodeQueue::get_serial_commands() {
 
 #endif // HAS_MEDIA
 
-#if ENABLED(SDSUPPORT) && ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if HAS_MEDIA && ALL(E3S1PRO_RTS, LASER_FEATURE)
 
   void get_sdcard_laser_range() 
   {
@@ -744,7 +744,7 @@ void GCodeQueue::get_serial_commands() {
     }
   }
   
-#endif // SDSUPPORT
+#endif // HAS_MEDIA && ALL(E3S1PRO_RTS, LASER_FEATURE)
 
 /**
  * Add to the circular command queue the next command from:
