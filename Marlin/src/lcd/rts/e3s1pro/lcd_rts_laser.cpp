@@ -66,6 +66,43 @@ constexpr float default_axis_steps_per_unit[] = DEFAULT_AXIS_STEPS_PER_UNIT;
 static bool first_start_laser = true;
 bool laser_axes_should_home = false;
 
+static void RTS_line_to_filelist() {
+  // clean filename Icon
+  //uint8_t file_current_page = 1;
+  for (int j = 0; j < 5; j++){
+    for (int i = 0; i < TEXTBYTELEN; i++){
+      rtscheck.RTS_SndData(0, CardRecbuf.addr[j] + i);
+    }
+  }
+
+  memset(&CardRecbuf, 0, sizeof(CardRecbuf));
+
+  int num = 0;
+  for (int16_t i = (file_current_page - 1) * 5; i < (file_current_page * 5); i++) {
+    card.selectFileByIndexSorted(i);
+    char *pointFilename = card.longFilename;
+    int filenamelen = strlen(card.longFilename);
+    int j = 1;
+    while ((strncmp(&pointFilename[j], ".gcode", 6) && strncmp(&pointFilename[j], ".GCODE", 6)) && ((j++) < filenamelen));
+    if (j >= TEXTBYTELEN) {
+      strncpy(&card.longFilename[TEXTBYTELEN - 3], "..", 2);
+      card.longFilename[TEXTBYTELEN - 1] = '\0';
+      j = TEXTBYTELEN - 1;
+    }
+    strncpy(CardRecbuf.Cardshowfilename[num], card.longFilename, j);
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        SERIAL_ECHO("inside rts_line_to_filelist");
+        SERIAL_ECHOLN("");
+        #endif
+    strcpy(CardRecbuf.Cardfilename[num], card.filename);
+    CardRecbuf.addr[num] = FILE1_TEXT_VP + (num * 20);
+    rtscheck.RTS_SndData(CardRecbuf.Cardshowfilename[num], CardRecbuf.addr[num]);
+    CardRecbuf.Filesum = (++num);
+  }
+  page_total_file = CardRecbuf.Filesum;
+  CardRecbuf.Filesum = ((file_total_page - 1) * 5) + page_total_file;
+}
+
 void RTSSHOW::RTS_SDcard_Stop_laser(void)
 {
   card.flag.abort_sd_printing = true;  //card.flag.abort_sd_printing
@@ -143,11 +180,44 @@ void RTSSHOW::RTS_HandleData_Laser(void)
     case MainEnterKey:
       if(recdat.data[0] == 1)
       {
+
         CardUpdate = true;
         CardRecbuf.recordcount = -1;
-        RTS_SDCardUpdate();
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        SERIAL_ECHOPGM("Working dir is: ");
+        SERIAL_ECHO(card.getWorkDirName());
+        SERIAL_ECHOLN("");
+        #endif
+        std::string currentdir;
+        currentdir = card.getWorkDirName();
+        if (card.getWorkDirName() != std::string("/")) {
+        card.cdup();
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        SERIAL_ECHO("chroot done to:");
+        SERIAL_ECHO(card.getWorkDirName());
+        SERIAL_ECHOLN("");
+        #endif
+        }
+
+        if (card.flag.mounted)
+        {
+        int16_t fileCnt = card.get_num_items();
+
+        if (fileCnt > 5) {
+          file_total_page = (fileCnt / 5) + 1;
+          if (file_total_page > 5) file_total_page = 5;
+        }
+        else
+          file_total_page = 1;
+
+        RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+        file_current_page = 1;
+        RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+
         RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
         change_page_font = 52;
+        if (IS_SD_INSERTED()) RTS_line_to_filelist();
+        }
         EEPROM_SAVE_LANGUAGE();
       }
       else if(recdat.data[0] == 2)
@@ -1012,34 +1082,64 @@ void RTSSHOW::RTS_HandleData_Laser(void)
       break;
 
     case SelectFileKey:
-      if (RTS_SD_Detected())
-      {
-        if (recdat.data[0] > CardRecbuf.Filesum)
-        {
-          break;
-        }
 
+      if (RTS_SD_Detected()) {
+        if (recdat.data[0] > CardRecbuf.Filesum) break;
         CardRecbuf.recordcount = recdat.data[0] - 1;
+        std::string filename = CardRecbuf.Cardfilename[CardRecbuf.recordcount];
+        // Find the last occurrence of the '.' character in the filename
+        std::size_t dot_pos = filename.find_last_of('.');
 
-        for(int j = 0; j < 10; j ++)
-        {
-          RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
+        if (dot_pos == std::string::npos) {
+          card.cd(CardRecbuf.Cardshowfilename[CardRecbuf.recordcount]);
+          int16_t fileCnt = card.get_num_items();
+          card.getWorkDirName();
+          
+          if (fileCnt > 5) {
+          file_total_page = (fileCnt / 5) + 1;
+          if (file_total_page > 5) file_total_page = 5;
+          }
+          else
+            file_total_page = 1;
+
+          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          file_current_page = 1;
+          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_line_to_filelist();
+          CardRecbuf.selectFlag = false;
+          if (PoweroffContinue /*|| print_job_timer.isRunning()*/) return;
+
+          // clean print file
+          for (int j = 0; j < 20; j++) RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
+          lcd_sd_status = IS_SD_INSERTED();
         }
-        delay(2);
-        for(int j = 1;j <= CardRecbuf.Filesum;j ++)
-        {
-          RTS_SndData((unsigned long)0x073F, FilenameNature + j * 16);
-          RTS_SndData(0, FILE1_SELECT_ICON_VP - 1 + j);
+        else {
+          CardRecbuf.selectFlag = true;
+          CardRecbuf.recordcount = recdat.data[0] - 1;
+          for (int j = 0; j < 20; j++) RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
+          delay(2);
+          RTS_SndData((unsigned long)0xFFFF, FilenameNature + recdat.data[0] * 16);      
+          RTS_SndData(ExchangePageBase + 51, ExchangepageAddr);
+          change_page_font = 51;
+          
+          #if ENABLED(GCODE_PREVIEW_ENABLED)
+            char ret;
+            gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, false);
+            ret = gcodePicDataSendToDwin(CardRecbuf.Cardfilename[CardRecbuf.recordcount],VP_OVERLAY_PIC_PTINT,PIC_FORMAT_JPG, PIC_RESOLITION_300_300);
+            if (ret == PIC_OK) {
+              gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, false);
+            } else {
+              gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, true);
+            }          
+          #endif
+          
+          rts_start_print = true;
+          delay(20);
+          RTS_SndData(CardRecbuf.Cardshowfilename[CardRecbuf.recordcount], SELECT_FILE_TEXT_VP);
+          RTS_SndData(ExchangePageBase + 51, ExchangepageAddr);
+          change_page_font = 51;
         }
-        RTS_SndData((unsigned long)0xFFFF, FilenameNature + recdat.data[0] * 16);
-        RTS_SndData(1, FILE1_SELECT_ICON_VP + (recdat.data[0] - 1));
       }
-
-      RTS_SndData(ExchangePageBase + 51, ExchangepageAddr);
-      change_page_font = 51;
-      rts_start_print = true;
-      delay(20);
-      RTS_SndData(CardRecbuf.Cardshowfilename[CardRecbuf.recordcount], SELECT_FILE_TEXT_VP);
       break;
 
     case StartFileKey:
@@ -1066,23 +1166,68 @@ void RTSSHOW::RTS_HandleData_Laser(void)
       }
       else if(recdat.data[0] == 2)
       {
-        RTS_SndData(ExchangePageBase + 53, ExchangepageAddr);
-        change_page_font = 53;
+        if (!planner.has_blocks_queued()) {
+          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          if ((file_total_page > file_current_page) && (file_current_page < (MaxFileNumber / 4))){
+            file_current_page++;
+          }else{
+            break;
+          }
+          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
+          change_page_font = 52;
+          if (card.flag.mounted){
+            RTS_line_to_filelist();              
+          }       
+        }
+        //RTS_SndData(ExchangePageBase + 53, ExchangepageAddr);
+        //change_page_font = 53;
       }
       else if(recdat.data[0] == 3)
       {
-        RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
-        change_page_font = 52;
+        if (!planner.has_blocks_queued()) {
+          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          if (file_current_page > 1){
+            file_current_page--;
+          }else{
+            break;
+          }
+          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
+          change_page_font = 52;
+          if (card.flag.mounted){
+            RTS_line_to_filelist();
+          }
+        }        
+        //RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
+        //change_page_font = 52;
       }
       else if(recdat.data[0] == 4)
       {
-        RTS_SndData(ExchangePageBase + 54, ExchangepageAddr);
-        change_page_font = 54;
+
+        if (!planner.has_blocks_queued()) {
+          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          file_current_page = 1;
+          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
+          change_page_font = 2;
+          RTS_line_to_filelist();
+        }        
+        //RTS_SndData(ExchangePageBase + 54, ExchangepageAddr);
+        //change_page_font = 54;
       }
       else if(recdat.data[0] == 5)
       {
-        RTS_SndData(ExchangePageBase + 53, ExchangepageAddr);
-        change_page_font = 53;
+        if (!planner.has_blocks_queued()) {
+          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          file_current_page = file_total_page;
+          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_SndData(ExchangePageBase + 52, ExchangepageAddr);
+          change_page_font = 52;
+          RTS_line_to_filelist();
+        }        
+        //RTS_SndData(ExchangePageBase + 53, ExchangepageAddr);
+        //change_page_font = 53;
       }
       else if(recdat.data[0] == 6)
       {
