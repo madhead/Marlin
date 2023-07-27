@@ -180,7 +180,7 @@ timer_dev* HAL_get_timer_dev(int number) {
   }
 }
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
 static unsigned int sw=0, laser_h = 0, laser_l = 0;
 
 void laser_timer_soft_pwm_start(uint8_t pwm)
@@ -252,6 +252,6 @@ void laser_timer_soft_pwm_init(const uint32_t frequency)
   timer_generate_update(LASER_TIMER_DEV);
   // timer_resume(LASER_TIMER_DEV);
 }
-#endif //#if HAS_CUTTER
+#endif //#if LASER_FEATURE
 
 #endif // __STM32F1__

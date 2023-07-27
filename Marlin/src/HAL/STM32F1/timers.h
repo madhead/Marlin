@@ -200,7 +200,7 @@ void HAL_timer_set_interrupt_priority(uint_fast8_t timer_num, uint_fast8_t prior
 
 #define TIMER_OC_NO_PRELOAD 0 // Need to disable preload also on compare registers.
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
   #define LASER_TIMER_NUM	               3
   #define LASER_TIMER_DEV	               TIMER_DEV(LASER_TIMER_NUM)
   #define LASER_TIMER_FREQUENCY          1000 // PWM freq:1000Hz

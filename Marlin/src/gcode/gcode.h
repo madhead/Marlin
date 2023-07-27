@@ -893,11 +893,7 @@ private:
 
   #if HAS_EXTRUDERS
     static void M221();
-
-    #if ENABLED(E3S1PRO_RTS)    
-      static void M221_report(const bool forReplay=true);    
-    #endif
-
+    static void M221_report(const bool forReplay=true);    
   #endif
 
   #if ENABLED(DIRECT_PIN_CONTROL)

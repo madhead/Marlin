@@ -327,7 +327,7 @@ static constexpr bool verify_no_timer_conflicts() {
 // when hovering over it, making it easy to identify the conflicting timers.
 static_assert(verify_no_timer_conflicts(), "One or more timer conflict detected. Examine \"timers_in_use\" to help identify conflict.");
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
 
 #define LASER_TIMER_NUM	                          3
 #define LASER_TIMER_DEV	                          _TIMER_DEV(LASER_TIMER_NUM)

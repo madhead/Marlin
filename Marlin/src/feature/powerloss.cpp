@@ -626,11 +626,11 @@ void PrintJobRecovery::resume() {
 
         DEBUG_ECHOLNPGM("zraise: ", info.zraise, " ", info.flag.raised ? "(before)" : "");
 
-        //#if ENABLED(GCODE_REPEAT_MARKERS)
-        //  DEBUG_ECHOLNPGM("repeat index: ", info.stored_repeat.index);
-        //  for (uint8_t i = 0; i < info.stored_repeat.index; ++i)
-        //    DEBUG_ECHOLNPGM("..... sdpos: ", info.stored_repeat.marker.sdpos, " count: ", info.stored_repeat.marker.counter);
-        //#endif
+        #if ENABLED(GCODE_REPEAT_MARKERS)
+          DEBUG_ECHOLNPGM("repeat index: ", info.stored_repeat.index);
+          for (uint8_t i = 0; i < info.stored_repeat.index; ++i)
+            DEBUG_ECHOLNPGM("..... sdpos: ", info.stored_repeat.marker.sdpos, " count: ", info.stored_repeat.marker.counter);
+        #endif
 
         #if HAS_HOME_OFFSET
           DEBUG_ECHOPGM("home_offset: ");

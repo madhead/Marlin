@@ -382,7 +382,7 @@ void startOrResumeJob() {
     card.abortFilePrintNow(TERN_(SD_RESORT, true));
 
     #if ENABLED(E3S1PRO_RTS)
-      #if HAS_CUTTER
+      #if ENABLED(LASER_FEATURE)
         if(laser_device.is_laser_device())
         {
         }else
@@ -422,9 +422,32 @@ void startOrResumeJob() {
     }
   }
 
+  #if ALL(E3S1PRO_RTS, LASER_FEATURE)
+    inline void abortSDEngraving() {
+      IF_DISABLED(NO_SD_AUTOSTART, card.autofile_cancel());
+      card.abortFilePrintNow(TERN_(SD_RESORT, true));
+
+      queue.clear();
+      quickstop_stepper();
+
+      print_job_timer.abort();
+      laser_device.quick_stop();
+
+      wait_for_heatup = false;
+
+      TERN_(POWER_LOSS_RECOVERY, recovery.purge());
+
+      #ifdef EVENT_GCODE_SD_ABORT_LASER
+        queue.inject(F(EVENT_GCODE_SD_ABORT_LASER));
+      #endif
+
+      TERN_(PASSWORD_AFTER_SD_PRINT_ABORT, password.lock_machine());
+    }
+  #endif
+
 #endif // HAS_MEDIA
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
   void get_sdcard_laser_range();
 #endif
 
@@ -820,8 +843,16 @@ void idle(const bool no_stepper_sleep/*=false*/) {
 
   // Handle filament runout sensors
   #if HAS_FILAMENT_SENSOR
-    if (TERN1(HAS_PRUSA_MMU2, !mmu2.enabled()))
-      runout.run();
+    if (TERN1(HAS_PRUSA_MMU2, !mmu2.enabled())){
+      #if ALL(E3S1PRO_RTS, LASER_FEATURE)
+        if(laser_device.is_laser_device())
+        {
+        }else
+      #endif
+      {      
+        runout.run();
+      }
+    }
   #endif
 
   // Run HAL idle tasks
@@ -832,7 +863,14 @@ void idle(const bool no_stepper_sleep/*=false*/) {
 
   // Handle Power-Loss Recovery
   #if ENABLED(POWER_LOSS_RECOVERY) && PIN_EXISTS(POWER_LOSS)
+    #if ALL(E3S1PRO_RTS, LASER_FEATURE)
+      if(laser_device.is_laser_device())
+      {
+      }else
+    #endif
+    {    
     if (IS_SD_PRINTING()) recovery.outage();
+    }
   #endif
 
   // Run StallGuard endstop checks
@@ -860,7 +898,7 @@ void idle(const bool no_stepper_sleep/*=false*/) {
   TERN(DWIN_CREALITY_LCD, dwinUpdate(), ui.update());
 
   #if ENABLED(E3S1PRO_RTS)
-    #if HAS_CUTTER
+    #if ENABLED(LASER_FEATURE)
       if(laser_device.is_laser_device())
       {
         TERN(E3S1PRO_RTS, RTSUpdateLaser(),ui.update());
@@ -1438,8 +1476,9 @@ void setup() {
     OUT_WRITE(PHOTOGRAPH_PIN, LOW);
   #endif
 
-  #if HAS_CUTTER
-    SETUP_RUN(cutter.init());
+  #if ENABLED(LASER_FEATURE)
+    //SETUP_RUN(cutter.init());
+    SETUP_RUN(laser_device.soft_pwm_init()); 
   #endif
 
   #if ENABLED(COOLANT_MIST)
@@ -1651,6 +1690,10 @@ void setup() {
     BL24CXX::init();
     const uint8_t err = BL24CXX::check();
     SERIAL_ECHO_TERNARY(err, "BL24CXX Check ", "failed", "succeeded", "!\n");
+    #if ALL(E3S1PRO_RTS, LASER_FEATURE)
+      laser_device.get_device_form_eeprom(); // 107011   
+      laser_device.get_z_axis_high_form_eeprom();
+    #endif    
   #endif
 
   #if HAS_DWIN_E3V2_BASIC
@@ -1658,6 +1701,9 @@ void setup() {
   #endif
 
   #if ENABLED(E3S1PRO_RTS)
+      #if ENABLED(LASER_FEATURE)
+        if(laser_device.is_laser_device()) laser_device.laser_power_open();
+      #endif
       delay(500);
       SETUP_RUN(rtscheck.RTS_Init());
   #endif
@@ -1672,12 +1718,6 @@ void setup() {
 
   #if ENABLED(DIRECT_STEPPING)
     SETUP_RUN(page_manager.init());
-  #endif
-
-  #if ALL(E3S1PRO_RTS, HAS_CUTTER)
-      laser_device.get_device_form_eeprom(); // 107011   
-      laser_device.get_z_axis_high_form_eeprom();
-      if(laser_device.is_laser_device()) laser_device.laser_power_open();  
   #endif
 
   #if HAS_TFT_LVGL_UI
@@ -1750,7 +1790,15 @@ void loop() {
     idle();
 
     #if HAS_MEDIA
-      if (card.flag.abort_sd_printing) abortSDPrinting();
+      #if ALL(E3S1PRO_RTS, LASER_FEATURE)
+        if(laser_device.is_laser_device())
+        {
+          if (card.flag.abort_sd_printing) abortSDEngraving();
+        }else
+      #endif
+      {    
+        if (card.flag.abort_sd_printing) abortSDPrinting();
+      }
       if (marlin_state == MF_SD_COMPLETE) finishSDPrinting();
     #endif
 
