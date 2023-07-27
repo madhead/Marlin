@@ -40,7 +40,7 @@
 
 SpindleLaser cutter;
 bool SpindleLaser::enable_state;                                      // Virtual enable state, controls enable pin if present and or apply power if > 0
-uint8_t SpindleLaser::power,                                          // Actual power output 0-255 ocr or "0 = off" > 0 = "on"
+uint8_t SpindleLaser::power = 0,                                          // Actual power output 0-255 ocr or "0 = off" > 0 = "on"
         SpindleLaser::last_power_applied; // = 0                      // Basic power state tracking
 
 #if ENABLED(LASER_FEATURE)
@@ -98,21 +98,27 @@ void SpindleLaser::init() {
    */
   void SpindleLaser::_set_ocr(const uint8_t ocr) {
     #if ENABLED(HAL_CAN_SET_PWM_FREQ) && SPINDLE_LASER_FREQUENCY
-      hal.set_pwm_frequency(pin_t(SPINDLE_LASER_PWM_PIN), frequency);
+      if(laser_device.is_laser_device()) {
+        laser_device.laser_power_start(ocr);
+      }else{
+        #if ENABLED(HAL_CAN_SET_PWM_FREQ) && SPINDLE_LASER_FREQUENCY
+          hal.set_pwm_frequency(pin_t(SPINDLE_LASER_PWM_PIN), frequency);
+        #endif
+        hal.set_pwm_duty(pin_t(SPINDLE_LASER_PWM_PIN), ocr ^ SPINDLE_LASER_PWM_OFF);
+      }
     #endif
-    hal.set_pwm_duty(pin_t(SPINDLE_LASER_PWM_PIN), ocr ^ SPINDLE_LASER_PWM_OFF);
   }
 
   void SpindleLaser::set_ocr(const uint8_t ocr) {
     #if PIN_EXISTS(SPINDLE_LASER_ENA)
-      WRITE(SPINDLE_LASER_ENA_PIN,  SPINDLE_LASER_ACTIVE_STATE); // Cutter ON
+      //WRITE(SPINDLE_LASER_ENA_PIN,  SPINDLE_LASER_ACTIVE_STATE); // Cutter ON
     #endif
     _set_ocr(ocr);
   }
 
   void SpindleLaser::ocr_off() {
     #if PIN_EXISTS(SPINDLE_LASER_ENA)
-      WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE); // Cutter OFF
+     // WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE); // Cutter OFF
     #endif
     _set_ocr(0);
   }
@@ -149,7 +155,7 @@ void SpindleLaser::apply_power(const uint8_t opwr) {
   }
   else {
     #if PIN_EXISTS(SPINDLE_LASER_ENA)
-      WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE);
+    //  WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE);
     #endif
     isReadyForUI = false; // Only used for UI display updates.
     TERN_(SPINDLE_LASER_USE_PWM, ocr_off());

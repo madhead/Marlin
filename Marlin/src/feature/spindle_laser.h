@@ -162,13 +162,13 @@ public:
   /**
    * Correct power to configured range
    */
-  static cutter_power_t power_to_range(const cutter_power_t pwr, const uint8_t pwrUnit=_CUTTER_POWER(CUTTER_POWER_UNIT)) {
+  static cutter_power_t power_to_range(const cutter_power_t pwr, const uint8_t unitPwr=_CUTTER_POWER(CUTTER_POWER_UNIT)) {
     static constexpr float
       min_pct = TERN(CUTTER_POWER_RELATIVE, 0, TERN(SPINDLE_FEATURE, round(100.0f * (SPEED_POWER_MIN) / (SPEED_POWER_MAX)), SPEED_POWER_MIN)),
       max_pct = TERN(SPINDLE_FEATURE, 100, SPEED_POWER_MAX);
     if (pwr <= 0) return 0;
     cutter_power_t upwr;
-    switch (pwrUnit) {
+    switch (unitPwr) {
       case _CUTTER_POWER_PWM255: {  // PWM
         const uint8_t pmin = pct_to_ocr(min_pct), pmax = pct_to_ocr(max_pct);
         upwr = cutter_power_t(constrain(pwr, pmin, pmax));
@@ -328,6 +328,7 @@ public:
 
     // Set the power for subsequent movement blocks
     static void inline_power(const cutter_power_t cpwr) {
+      unitPower = menuPower = cpwr;
       TERN(SPINDLE_LASER_USE_PWM, power = planner.laser_inline.power = cpwr, planner.laser_inline.power = cpwr > 0 ? 255 : 0);
     }
 
@@ -338,7 +339,7 @@ public:
 
 extern SpindleLaser cutter;
 
-#if ALL(E3S1PRO_RTS, HAS_CUTTER)
+#if ALL(E3S1PRO_RTS, LASER_FEATURE)
 
 enum device_header{
 	DEVICE_UNKNOWN=0xff, //unknow device
