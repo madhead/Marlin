@@ -239,8 +239,9 @@ void laser_timer_handler(void)
   }
 }
 
-void laser_timer_soft_pwm_init(const uint32_t frequency)
+void laser_timer_soft_pwm_init()
 {
+  const uint32_t frequency = LASER_TIMER_FREQUENCY;
   timer_pause(LASER_TIMER_DEV);
   //timer_set_mode(LASER_TIMER_DEV, TEMP_TIMER_CHAN, TIMER_OUTPUT_COMPARE);
   timer_set_count(LASER_TIMER_DEV, 0);

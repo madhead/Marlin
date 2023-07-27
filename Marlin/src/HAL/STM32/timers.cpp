@@ -422,8 +422,9 @@ void laser_timer_soft_pwm_close()
 	WRITE(LASER_SOFT_PWM_PIN, 0);
 }
 
-void laser_timer_soft_pwm_init(const uint32_t frequency)
+void laser_timer_soft_pwm_init()
 {
+  const uint32_t frequency = LASER_TIMER_FREQUENCY;  
   if(timer_laser == nullptr)
   {
     timer_laser = new HardwareTimer(LASER_TIMER_DEV);

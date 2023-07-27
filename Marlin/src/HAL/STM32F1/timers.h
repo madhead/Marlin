@@ -209,7 +209,7 @@ void HAL_timer_set_interrupt_priority(uint_fast8_t timer_num, uint_fast8_t prior
   #define LASER_TIMER_CHAN		           1
   #define LASER_TIMER_IRQ_PRIO	         1
 
-  void laser_timer_soft_pwm_init(const uint32_t frequency);
+  void laser_timer_soft_pwm_init();
   void laser_timer_soft_pwm_start(uint8_t pwm);
   void laser_timer_soft_pwm_stop(void);
   void laser_timer_soft_pwm_close();

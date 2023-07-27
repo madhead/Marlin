@@ -35,8 +35,6 @@
 
 #if ENABLED(POWER_LOSS_RECOVERY)
   #include "../../../feature/powerloss.h"
-#elif ENABLED(CREALITY_POWER_LOSS)
-  #include "../../feature/PRE01_Power_loss/PRE01_Power_loss.h"
 #endif
 
 #if ENABLED(LASER_FEATURE)
