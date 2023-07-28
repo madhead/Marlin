@@ -283,8 +283,8 @@ static void RTS_line_to_filelist() {
     }
     strncpy(CardRecbuf.Cardshowfilename[num], card.longFilename, j);
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO("inside rts_line_to_filelist");
-        SERIAL_ECHOLN("");
+          SERIAL_ECHO("inside rts_line_to_filelist");
+          SERIAL_ECHOLN("");
         #endif
     strcpy(CardRecbuf.Cardfilename[num], card.filename);
     CardRecbuf.addr[num] = FILE1_TEXT_VP + (num * 20);
@@ -470,13 +470,14 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
   }
 
   // Print the received data to the serial monitor for debugging.
-  SERIAL_ECHO("Received data from display: ");
-  for (int i = 0; i < recnum; i++) {
-    SERIAL_ECHO(databuf[i]);
-    SERIAL_ECHO(" ");
-  }
-  SERIAL_ECHOLN("");
-
+  #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)  
+    SERIAL_ECHO("Received data from display: ");
+    for (int i = 0; i < recnum; i++) {
+      SERIAL_ECHO(databuf[i]);
+      SERIAL_ECHO(" ");
+    }
+    SERIAL_ECHOLN("");
+  #endif
   if (recnum >= 7 && databuf[0] == FHONE && databuf[1] == FHTWO && databuf[2] == 0x04) {
     // Extract the received data from the response.
     recData.len = databuf[2];
@@ -490,7 +491,9 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
     }
   } else {
     // Handle error or invalid response here.
-    SERIAL_ECHOLN("Error: Invalid response from display.");
+    #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+      SERIAL_ECHOLN("Error: Invalid response from display.");
+    #endif
     return;
   }
 }
@@ -1188,28 +1191,24 @@ void RTSSHOW::RTS_HandleData(void)
   #endif
   switch(Checkkey)
   {
-    case 0x17D8: // Check if received address is 0x1234
-      // Output the received data to the serial monitor
-      SERIAL_ECHO_MSG("Received value: ", recdat.data[0]);
-      break;    
     //SERIAL_ECHO_MSG("Recorded value Catchall\n", Checkkey);            
     case MainEnterKey:
       if (recdat.data[0] == 1) {
         CardUpdate = true;
         CardRecbuf.recordcount = -1;
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHOPGM("Working dir is: ");
-        SERIAL_ECHO(card.getWorkDirName());
-        SERIAL_ECHOLN("");
+          SERIAL_ECHOPGM("Working dir is: ");
+          SERIAL_ECHO(card.getWorkDirName());
+          SERIAL_ECHOLN("");
         #endif
         std::string currentdir;
         currentdir = card.getWorkDirName();
         if (card.getWorkDirName() != std::string("/")) {
         card.cdup();
         #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO("chroot done to:");
-        SERIAL_ECHO(card.getWorkDirName());
-        SERIAL_ECHOLN("");
+          SERIAL_ECHO("chroot done to:");
+          SERIAL_ECHO(card.getWorkDirName());
+          SERIAL_ECHOLN("");
         #endif
         }
 
@@ -1336,15 +1335,7 @@ void RTSSHOW::RTS_HandleData(void)
           if (false == CardRecbuf.selectFlag) {
             gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, true);
           }        
-        #endif
-        //SERIAL_ECHOLNPGM("x_min_pos_eeprom_temp main: ", x_min_pos_eeprom_temp);
-        //if (x_min_pos_eeprom_temp == 1) {
-        //  RTS_SndData(101, X_MIN_POS_EEPROM_VP);
-        //}    
-        //SERIAL_ECHOLNPGM("y_min_pos_eeprom_temp main: ", y_min_pos_eeprom_temp);
-        //if (y_min_pos_eeprom_temp == 1) {
-        //  RTS_SndData(101, Y_MIN_POS_EEPROM_VP);
-        //}          
+        #endif      
         change_page_font = 1;
       }
       else if(recdat.data[0] == 9)
@@ -3104,11 +3095,15 @@ void RTSSHOW::RTS_HandleData(void)
       #endif
 
       if (recdat.data[FIRST_ELEMENT_INDEX_X] >= THRESHOLD_VALUE_X) {
-        SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_X]);
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+          SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_X]);
+        #endif
         recdat.data[FIRST_ELEMENT_INDEX_X] = rec_dat_temp_last_x;
       }      
-      current_position[X_AXIS] = ((float)recdat.data[0]) / 10;  
-      SERIAL_ECHO_MSG("current_position: ", current_position[X_AXIS]);           
+      current_position[X_AXIS] = ((float)recdat.data[0]) / 10;
+      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)        
+        SERIAL_ECHO_MSG("current_position: ", current_position[X_AXIS]);           
+      #endif
       rec_dat_temp_real_x = ((float)recdat.data[0]) / 10;
       rec_dat_temp_last_x = recdat.data[0];                              
       RTS_line_to_current(X_AXIS);
@@ -3129,7 +3124,9 @@ void RTSSHOW::RTS_HandleData(void)
         }
       #endif
       if (recdat.data[FIRST_ELEMENT_INDEX_Y] >= THRESHOLD_VALUE_Y) {
-        SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_Y]);
+        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+          SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_Y]);
+        #endif
         recdat.data[FIRST_ELEMENT_INDEX_Y] = rec_dat_temp_last_y;
       }
       current_position[Y_AXIS] = ((float)recdat.data[0]) / 10;      
@@ -3848,17 +3845,6 @@ void RTSSHOW::RTS_HandleData(void)
         home_offset_x_temp += 0.001;
       }
       home_offset.x = home_offset_x_temp;
-
-      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("home_offset_x_temp\n", home_offset_x_temp);
-        SERIAL_ECHOLNPGM("home_offset_x_temp enterkey: ", home_offset_x_temp);
-      #endif 
-        
-        //SERIAL_ECHOLNPGM("x_min_pos_eeprom_temp enterkey: ", x_min_pos_eeprom_temp);         
-        //BL24CXX::writeOneByte(x_min_pos_eeprom, x_min_pos_eeprom_temp);               
-        //if (x_min_pos_eeprom_temp == 1) {
-        //  RTS_SndData(101, X_MIN_POS_EEPROM_VP);
-        //}        
       RTS_SndData(home_offset.x * 10, HOME_X_OFFSET_VP);
       settings.save();
       break;
@@ -3876,15 +3862,6 @@ void RTSSHOW::RTS_HandleData(void)
         home_offset_y_temp += 0.001;
       }
       home_offset.y = home_offset_y_temp;     
-      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("home_offset_y_temp\n", home_offset_y_temp);             
-        SERIAL_ECHOLNPGM("home_offset_y_temp enterkey: ", home_offset_y_temp);
-      #endif 
-        //SERIAL_ECHOLNPGM("y_min_pos_eeprom_temp enterkey: ", y_min_pos_eeprom_temp);                 
-        //BL24CXX::writeOneByte(y_min_pos_eeprom, y_min_pos_eeprom_temp);
-        //if (y_min_pos_eeprom_temp == 1) {
-        //  RTS_SndData(101, Y_MIN_POS_EEPROM_VP);
-        //}  
       RTS_SndData(home_offset.y * 10, HOME_Y_OFFSET_VP);      
       settings.save();      
       break;                     
