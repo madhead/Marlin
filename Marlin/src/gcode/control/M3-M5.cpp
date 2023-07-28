@@ -99,7 +99,7 @@ void GcodeSuite::M3_M4(const bool is_M4) {
     #if ENABLED(LASER_FEATURE)
       float u = cutter.unitPower;
     #else
-      float u;
+      float u = 0.0f;
     #endif
     if (parser.seenval('S')) {
       const float v = parser.value_float();
