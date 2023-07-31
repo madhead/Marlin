@@ -262,6 +262,25 @@ RTSSHOW::RTSSHOW(void)
 }
 
 static void RTS_line_to_filelist() {
+
+  char statStr1[4];
+  snprintf(statStr1, sizeof(statStr1), "%d", file_current_page);
+  char statStr2[4];
+  snprintf(statStr2, sizeof(statStr2), "%d", file_total_page);
+  for (int h = 0; h < 2; h++) {
+  rtscheck.RTS_SndData(0, PAGE_STATUS_TEXT_CURRENT_VP);
+  rtscheck.RTS_SndData(0, PAGE_STATUS_TEXT_TOTAL_VP);    
+  }
+
+  rtscheck.RTS_SndData(statStr1, PAGE_STATUS_TEXT_CURRENT_VP);
+  rtscheck.RTS_SndData(statStr2, PAGE_STATUS_TEXT_TOTAL_VP);
+
+  for (int i = 0; i < 40; i += 20) {
+    for (int j = 0; j < 20; j++) {
+      rtscheck.RTS_SndData(0, FILE1_TEXT_VP + i + j);
+    }
+  }
+
   // clean filename Icon
   for (int j = 0; j < 5; j++)
     for (int i = 0; i < TEXTBYTELEN; i++)
@@ -270,12 +289,13 @@ static void RTS_line_to_filelist() {
   memset(&CardRecbuf, 0, sizeof(CardRecbuf));
 
   int num = 0;
-  for (int16_t i = (file_current_page - 1) * 5; i < (file_current_page * 5); i++) {
+  for (int16_t i = (file_current_page - 1) * 5; i < (file_current_page * 5); i++) {  
     card.selectFileByIndexSorted(i);
     char *pointFilename = card.longFilename;
     int filenamelen = strlen(card.longFilename);
     int j = 1;
-    while ((strncmp(&pointFilename[j], ".gcode", 6) && strncmp(&pointFilename[j], ".GCODE", 6)) && ((j++) < filenamelen));
+    while ((strncmp(&pointFilename[j], ".gcode", 6) != 0 && strncmp(&pointFilename[j], ".GCODE", 6) != 0 && strncmp(&pointFilename[j], ".GCO", 4) != 0 && strncmp(&pointFilename[j], ".gco", 4) != 0) && (j++ < filenamelen));    
+   
     if (j >= TEXTBYTELEN) {
       strncpy(&card.longFilename[TEXTBYTELEN - 3], "..", 2);
       card.longFilename[TEXTBYTELEN - 1] = '\0';
@@ -308,21 +328,21 @@ void RTSSHOW::RTS_SDCardInit(void) {
 
     if (fileCnt > 5) {
       file_total_page = (fileCnt / 5) + 1;
-      if (file_total_page > 5) file_total_page = 5;
+      if (file_total_page > 8) file_total_page = 8;
     }
     else
       file_total_page = 1;
 
-    RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+    RTS_SndData(file_total_page, PAGE_STATUS_TEXT_TOTAL_VP);
     file_current_page = 1;
-    RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+    RTS_SndData(file_current_page, PAGE_STATUS_TEXT_CURRENT_VP);
     RTS_line_to_filelist();
     CardRecbuf.selectFlag = false;
 
     if (PoweroffContinue /*|| print_job_timer.isRunning()*/) return;
 
     // clean print file
-    for (int j = 0; j < 20; j++) RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
+    for (int j = 0; j < 40; j++) RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
     lcd_sd_status = IS_SD_INSERTED();
   }
   else {
@@ -372,18 +392,18 @@ void RTSSHOW::RTS_SDCardUpdate() {
 
       card.release();
       for (int i = 0; i < CardRecbuf.Filesum; i++) {
-        for (int j = 0; j < 20; j++) RTS_SndData(0, CardRecbuf.addr[i] + j);
+        for (int j = 0; j < 40; j++) RTS_SndData(0, CardRecbuf.addr[i] + j);
         RTS_SndData((unsigned long)0xFFFF, FilenameNature + (i + 1) * 16);
       }
-      for (int j = 0; j < 20; j++) {
+      for (int j = 0; j < 40; j++) {
         // clean screen.
         RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
         RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
       }
       memset(&CardRecbuf, 0, sizeof(CardRecbuf));
-      RTS_SndData(1, PRINT_COUNT_PAGE_DATA_VP);
+      RTS_SndData(1, PAGE_STATUS_TEXT_TOTAL_VP);
       file_total_page = 1;
-      RTS_SndData(1, PRINT_CURRENT_PAGE_DATA_VP);
+      RTS_SndData(1, PAGE_STATUS_TEXT_CURRENT_VP);
       file_current_page = 1;
     }
     lcd_sd_status = sd_status;
@@ -501,7 +521,7 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
 void RTSSHOW::RTS_Init(void)
 {
 
-  delay(1000);
+  delay(200);
 
   AxisUnitMode = 1;
   lang = language_change_font;
@@ -510,7 +530,7 @@ void RTSSHOW::RTS_Init(void)
   //y_min_pos_eeprom_temp = BL24CXX::readOneByte(y_min_pos_eeprom);
 
   #if ENABLED(POWER_LOSS_RECOVERY)
-    if (!IS_SD_INSERTED()) { delay(500); card.mount(); }
+    if (!IS_SD_INSERTED()) { delay(50); card.mount(); }
     if (IS_SD_INSERTED()) recovery.check();
   #endif
 /**
@@ -534,7 +554,7 @@ void RTSSHOW::RTS_Init(void)
   // Print the received text field content to the serial monitor for testing
   SERIAL_ECHO_MSG("Value of variable at address 0x17D8: ", textFieldContent.c_str());
 */
-  delay(500);
+  delay(50);
 
   last_zoffset = zprobe_zoffset = probe.offset.z;
   touchscreen_requested_mesh = 0;
@@ -718,7 +738,7 @@ void RTSSHOW::RTS_Init(void)
   //rtscheck.RTS_SndData(1, FILAMENT_CONTROL_ICON_VP);
 
   // Disable Filename Field on startup
-  for (int j = 0; j < 20; j++) {
+  for (int j = 0; j < 40; j++) {
     // clean screen.
     RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
     RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
@@ -734,7 +754,7 @@ void RTSSHOW::RTS_Init(void)
     delay(50);
   }
   hal.watchdog_refresh();
-  delay(500);
+  delay(50);
   Update_Time_Value = RTS_UPDATE_VALUE;
 }
 
@@ -1143,7 +1163,7 @@ void RTSSHOW::RTS_SDcard_Stop(void)
   RTS_SndData(0, PRINT_TIME_HOUR_VP);
   RTS_SndData(0, PRINT_TIME_MIN_VP);
 
-  for(int j = 0;j < 20;j ++)
+  for(int j = 0;j < 40;j ++)
   {
     // clean screen.
     RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
@@ -1218,19 +1238,20 @@ void RTSSHOW::RTS_HandleData(void)
 
         if (fileCnt > 5) {
           file_total_page = (fileCnt / 5) + 1;
-          if (file_total_page > 5) file_total_page = 5;
+          if (file_total_page > 8) file_total_page = 8;
         }
         else
           file_total_page = 1;
 
-        RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+        RTS_SndData(file_total_page, PAGE_STATUS_TEXT_TOTAL_VP);
         file_current_page = 1;
-        RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+        RTS_SndData(file_current_page, PAGE_STATUS_TEXT_CURRENT_VP);
 
         RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
         change_page_font = 2;
         if (IS_SD_INSERTED()) RTS_line_to_filelist();
         }
+        CardUpdate = false;
       }
       else if (recdat.data[0] == 2) {
         AxisUnitMode = 1;
@@ -1277,7 +1298,7 @@ void RTSSHOW::RTS_HandleData(void)
 
         print_job_timer.reset();
         sd_printing_autopause = false;
-        for(int j = 0;j < 20; j++)
+        for(int j = 0;j < 40; j++)
         {
           // clean screen.
           RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
@@ -3881,26 +3902,26 @@ void RTSSHOW::RTS_HandleData(void)
           
           if (fileCnt > 5) {
           file_total_page = (fileCnt / 5) + 1;
-          if (file_total_page > 5) file_total_page = 5;
+          if (file_total_page > 8) file_total_page = 8;
           }
           else
             file_total_page = 1;
 
-          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
+          RTS_SndData(file_total_page, PAGE_STATUS_TEXT_TOTAL_VP);
           file_current_page = 1;
-          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
+          RTS_SndData(file_current_page, PAGE_STATUS_TEXT_CURRENT_VP);
           RTS_line_to_filelist();
           CardRecbuf.selectFlag = false;
           if (PoweroffContinue /*|| print_job_timer.isRunning()*/) return;
 
           // clean print file
-          for (int j = 0; j < 20; j++) RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
+          for (int j = 0; j < 40; j++) RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
           lcd_sd_status = IS_SD_INSERTED();
         }
         else {
           CardRecbuf.selectFlag = true;
           CardRecbuf.recordcount = recdat.data[0] - 1;
-          for (int j = 0; j < 20; j++) RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
+          for (int j = 0; j < 40; j++) RTS_SndData(0, SELECT_FILE_TEXT_VP + j);
           delay(2);
           RTS_SndData((unsigned long)0xFFFF, FilenameNature + recdat.data[0] * 16);      
           RTS_SndData(ExchangePageBase + 1, ExchangepageAddr);
@@ -3918,7 +3939,7 @@ void RTSSHOW::RTS_HandleData(void)
           #endif
           
           rts_start_print = true;
-          delay(20);
+          delay(5);
           RTS_SndData(CardRecbuf.Cardshowfilename[CardRecbuf.recordcount], SELECT_FILE_TEXT_VP);
           RTS_SndData(ExchangePageBase + 1, ExchangepageAddr);
           change_page_font = 1;
@@ -3966,7 +3987,7 @@ void RTSSHOW::RTS_HandleData(void)
         delay(20);
         queue.enqueue_now_P(PSTR("M24"));
         // clean screen.
-        for (int j = 0; j < 20; j ++)
+        for (int j = 0; j < 100; j ++)
         {
           RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
         }
@@ -3989,13 +4010,11 @@ void RTSSHOW::RTS_HandleData(void)
       else if(recdat.data[0] == 2)
       {
         if (!planner.has_blocks_queued()) {
-          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
-          if ((file_total_page > file_current_page) && (file_current_page < (MaxFileNumber / 4))){
+          if ((file_total_page > file_current_page) && (file_current_page < (MaxFileNumber / 5))){
             file_current_page++;
           }else{
             break;
           }
-          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
           RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
           change_page_font = 2;
           if (card.flag.mounted){
@@ -4005,15 +4024,12 @@ void RTSSHOW::RTS_HandleData(void)
       }
       else if(recdat.data[0] == 3)
       {
-
         if (!planner.has_blocks_queued()) {
-          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
           if (file_current_page > 1){
             file_current_page--;
           }else{
             break;
           }
-          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
           RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
           change_page_font = 2;
           if (card.flag.mounted){
@@ -4024,9 +4040,7 @@ void RTSSHOW::RTS_HandleData(void)
       else if(recdat.data[0] == 4)
       {
         if (!planner.has_blocks_queued()) {
-          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
           file_current_page = 1;
-          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
           RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
           change_page_font = 2;
           RTS_line_to_filelist();
@@ -4036,14 +4050,11 @@ void RTSSHOW::RTS_HandleData(void)
       else if(recdat.data[0] == 5)
       {
         if (!planner.has_blocks_queued()) {
-          RTS_SndData(file_total_page, PRINT_COUNT_PAGE_DATA_VP);
           file_current_page = file_total_page;
-          RTS_SndData(file_current_page, PRINT_CURRENT_PAGE_DATA_VP);
           RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
           change_page_font = 2;
           RTS_line_to_filelist();
         }
-
       }
       else if(recdat.data[0] == 6)
       {
@@ -4062,18 +4073,35 @@ void RTSSHOW::RTS_HandleData(void)
       }
       else if(recdat.data[0] == 9)
       {
-        RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
-        change_page_font = 2;   
-        RTS_line_to_filelist();
+        if (!planner.has_blocks_queued()) {
+          if (file_current_page > 1){
+            file_current_page--;
+          }else{
+            break;
+          }
+          RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
+          change_page_font = 2;
+          if (card.flag.mounted){
+            RTS_line_to_filelist();
+          }
+        }
       }
       else if(recdat.data[0] == 0x0A)
       {
-        RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
-        change_page_font = 2;  
-        RTS_line_to_filelist();           
+        if (!planner.has_blocks_queued()) {
+          if ((file_total_page > file_current_page) && (file_current_page < (MaxFileNumber / 5))){
+            file_current_page++;
+          }else{
+            break;
+          }
+          RTS_SndData(ExchangePageBase + 2, ExchangepageAddr);
+          change_page_font = 2;
+          if (card.flag.mounted){
+            RTS_line_to_filelist();              
+          }
+        }           
       }  
       break;
-
 
     case ChangePageKey:
       RTS_SndData(CardRecbuf.Cardshowfilename[CardRecbuf.recordcount], PRINT_FILE_TEXT_VP);
@@ -4293,15 +4321,14 @@ void EachMomentUpdate(void)
         int16_t fileCnt = card.get_num_items();
         card.getWorkDirName();
         if (card.filename[0] != '/') card.cdup();
-
         for (int16_t i = 0; (i < fileCnt) && (i < MaxFileNumber); i++) {
           card.selectFileByIndexSorted(i);
           char *pointFilename = card.longFilename;
           int filenamelen = strlen(card.longFilename);
-          int j = 1;
-          while ((strncmp(&pointFilename[j], ".gcode", 6) && strncmp(&pointFilename[j], ".GCODE", 6)) && ((j++) < filenamelen));
+          int j = 1; 
+          while ((strncmp(&pointFilename[j], ".gcode", 6) != 0 && strncmp(&pointFilename[j], ".GCODE", 6) != 0 && strncmp(&pointFilename[j], ".GCO", 4) != 0 && strncmp(&pointFilename[j], ".gco", 4) != 0) && (j++ < filenamelen));
 
-          for (int j = 0; j < 20; j++) rtscheck.RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
+          for (int j = 0; j < 40; j++) rtscheck.RTS_SndData(0, PRINT_FILE_TEXT_VP + j);
 
           if (j >= TEXTBYTELEN) {
             strncpy(&card.longFilename[TEXTBYTELEN - 3], "..", 2);
@@ -4336,8 +4363,7 @@ void EachMomentUpdate(void)
             gcodePicDispalyOnOff(DEFAULT_PRINT_MODEL_VP, true);
           #endif
         }
-      }
-      
+      }    
       return;
     }
     else

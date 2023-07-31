@@ -30,7 +30,7 @@ extern bool power_off_type_yes;
 #define FHTWO   (0xA5)
 #define FHLENG  (0x06)
 #define TEXTBYTELEN     20
-#define MaxFileNumber   20
+#define MaxFileNumber   40
 
 #define VALUE_INVALID                       0xFFFF
 #define VALUE_INVALID_8BIT                  0xFF
@@ -70,7 +70,9 @@ const uint16_t DGUS_VERSION = 0x000F;
 #define ExchangepageAddr      0x0084
 #define SoundAddr             0x00A0
 
-#define PAGE_STATUS_TEXT_VP                0x201E
+#define PAGE_STATUS_TEXT_CURRENT_VP        0x10CC
+#define PAGE_STATUS_TEXT_TOTAL_VP          0x10D0
+
 #define SELECT_FILE_TEXT_VP                0x219A
 
 #define START_PROCESS_ICON_VP              0x1000
@@ -136,9 +138,6 @@ const uint16_t DGUS_VERSION = 0x000F;
 #define PID_TUNING_RUNNING_VP             0x1001
 #define PID_ICON_MODE_VP                  0x1003
 #define PID_TEXT_OUT_VP                   0x205B
-
-#define PRINT_CURRENT_PAGE_DATA_VP         0x10CA
-#define PRINT_COUNT_PAGE_DATA_VP           0x10CC
 
 #define PRINT_REMAIN_TIME_HOUR_VP          0x1171
 #define PRINT_REMAIN_TIME_MIN_VP           0x1173
@@ -862,9 +861,6 @@ extern uint8_t y_min_pos_eeprom;
 extern int8_t g_uiAutoPIDRuningDiff;
 extern int16_t g_uiCurveDataCnt;
 extern int leveling_running;
-//extern uint8_t page_total_file;
-//extern uint8_t file_total_page;
-//extern uint8_t file_current_page;
 void AutoUIBedNozzleHeightCali(void);
 void LcdAutoUIMoveXYBlock(float _posX, float _posY);
 void LcdAutoUIMoveZBlock(float _posZ);
