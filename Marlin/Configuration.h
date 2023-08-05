@@ -69,6 +69,7 @@
 //#define ENDER_3S1_PRO
 //#define ENDER_3S1_PLUS
 //#define ENDER_3S1
+#define FORK_VERSION "v005"
 
 // Choose the name from boards.h that matches your setup
 #define USER_STM32F401  1
@@ -101,18 +102,6 @@
 #endif
 
 #if ENABLED(ENDER_3S1_PRO)
-  /**
-   * Release version. Leave the Marlin version or apply a custom scheme.
-   */
-  #ifndef SHORT_BUILD_VERSION
-    #if ENABLED(Z_AXIS_LIMIT_MODE)
-      #define SHORT_BUILD_VERSION "2.1.x-byTTZ"
-    #elif ENABLED(USER_STM32F103)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F1"
-    #elif ENABLED(USER_STM32F401)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-xx"
-    #endif  
-  #endif
   //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
   #define CUSTOM_MACHINE_NAME "Ender-3 S1 Pro"  
   #define MACVERSION        STRING_CONFIG_H_AUTHOR
@@ -120,27 +109,27 @@
   #define MACHINE_TYPE      "Ender-3 S1 Pro"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "abl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "abl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "abl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "abl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "abl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "abl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "abl10x10-" FORK_VERSION "-byTT"
     #endif
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-" FORK_VERSION "-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "UI20" 
@@ -156,19 +145,6 @@
 #endif
 
 #if ENABLED(ENDER_3S1_PLUS)
-
-  /**
-   * Release version. Leave the Marlin version or apply a custom scheme.
-   */
-  #ifndef SHORT_BUILD_VERSION
-    #if ENABLED(Z_AXIS_LIMIT_MODE)
-      #define SHORT_BUILD_VERSION "2.1.x-byTTZ"
-    #elif ENABLED(USER_STM32F103)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F1"
-    #elif ENABLED(USER_STM32F401)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F4"
-    #endif  
-  #endif
   //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
   #define CUSTOM_MACHINE_NAME "Ender-3 S1 Plus"  
   #define MACVERSION        STRING_CONFIG_H_AUTHOR
@@ -176,27 +152,27 @@
   #define MACHINE_TYPE      "Ender-3 S1 Plus"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "abl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "abl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "abl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "abl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "abl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "abl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "abl10x10-" FORK_VERSION "-byTT"
     #endif    
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-" FORK_VERSION "-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT"
@@ -212,37 +188,24 @@
 #endif
 
 #if ENABLED(ENDER_3S1)
-
-  /**
-   * Release version. Leave the Marlin version or apply a custom scheme.
-   */
-  #ifndef SHORT_BUILD_VERSION
-    #if ENABLED(Z_AXIS_LIMIT_MODE)
-      #define SHORT_BUILD_VERSION "2.1.x-byTTZ"
-    #elif ENABLED(USER_STM32F103)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F1"
-    #elif ENABLED(USER_STM32F401)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F4"
-    #endif  
-  #endif
   //#define CUSTOM_VERSION_FILE Version.h // Path from the root directory (no quotes)
   #define CUSTOM_MACHINE_NAME "Ender-3 S1"  
   #define MACVERSION        STRING_CONFIG_H_AUTHOR
   #define SOFTVERSION       SHORT_BUILD_VERSION
   #define MACHINE_TYPE      "Ender-3 S1"
   #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-    #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
+    #define FIRMWARE_VERSION  "abl5x5-" FORK_VERSION "-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-" FORK_VERSION "-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT" 
@@ -257,18 +220,6 @@
   #define CORP_WEBSITE_E    "www.marlinfw.org"
 #endif
 #if ENABLED(ENDER_3)
-  /**
-   * Release version. Leave the Marlin version or apply a custom scheme.
-   */
-  #ifndef SHORT_BUILD_VERSION
-    #if ENABLED(Z_AXIS_LIMIT_MODE)
-      #define SHORT_BUILD_VERSION "2.1.x-byTTZ"
-    #elif ENABLED(USER_STM32F103)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F1"
-    #elif ENABLED(USER_STM32F401)
-      #define SHORT_BUILD_VERSION "2.1.x-byTT-F4"
-    #endif  
-  #endif
   // Author info of this build printed to the host during boot and M115
   #define CUSTOM_MACHINE_NAME "Ender-3"    
   #define STRING_CONFIG_H_AUTHOR "build by TT" // Who made the changes.
@@ -280,15 +231,15 @@
     #define FIRMWARE_VERSION  "abl5x5-byTT"
   #else
     #if GRID_MAX_POINTS_X == 5
-      #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl5x5-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 7
-      #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl7x7-" FORK_VERSION "-byTT"
     #elif GRID_MAX_POINTS_X == 8
-      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl8x8-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 9
-      #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
+      #define FIRMWARE_VERSION  "ubl9x9-" FORK_VERSION "-byTT"      
     #elif GRID_MAX_POINTS_X == 10
-      #define FIRMWARE_VERSION  "ubl10x10-v004-byTT"
+      #define FIRMWARE_VERSION  "ubl10x10-" FORK_VERSION "-byTT"
     #endif
   #endif
   #define SCREEN_VERSION    "v1.0.1-byTT" 
@@ -297,6 +248,19 @@
   #define PRINT_SIZE        "235 * 235 * 250"
   #define CORP_WEBSITE_C    "www.cxsw3d.com  "
   #define CORP_WEBSITE_E    "www.marlinfw.org"
+#endif
+
+/**
+ * Release version. Leave the Marlin version or apply a custom scheme.
+ */
+#ifndef SHORT_BUILD_VERSION
+  #if ENABLED(Z_AXIS_LIMIT_MODE)
+    #define SHORT_BUILD_VERSION FIRMWARE_VERSION
+  #elif ENABLED(USER_STM32F103)
+    #define SHORT_BUILD_VERSION FIRMWARE_VERSION
+  #elif ENABLED(USER_STM32F401)
+    #define SHORT_BUILD_VERSION FIRMWARE_VERSION
+  #endif  
 #endif
 
 /**

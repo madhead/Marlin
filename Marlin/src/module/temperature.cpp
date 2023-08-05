@@ -921,7 +921,7 @@ volatile bool Temperature::raw_temps_ready = false;
               _TEMP_ERROR(heater_id, FPSTR(str_t_heating_failed), MSG_HEATING_FAILED_LCD, current_temp);        
               }
             }
-            else if (current_temp < target - (MAX_OVERSHOOT_PID_AUTOTUNE)) // Heated, then temperature fell too far?
+            else if (current_temp < target - (MAX_OVERSHOOT_PID_AUTOTUNE)) { // Heated, then temperature fell too far?
 
                 #if ENABLED(E3S1PRO_RTS)
                   rtscheck.RTS_SndData(ExchangePageBase + 31, ExchangepageAddr);
@@ -1929,7 +1929,7 @@ void Temperature::mintemp_error(const heater_id_t heater_id OPTARG(ERR_INCLUDE_T
           change_page_font = 31;
         #endif
 
-        MAXTEMP_ERROR(H_BED, deg)
+        MAXTEMP_ERROR(H_BED, deg);
       }
     }
     #endif

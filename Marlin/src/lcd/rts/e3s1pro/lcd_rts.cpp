@@ -5,6 +5,8 @@
 // GCODE_PREVIEW requires some fixing..
 //#define GCODE_PREVIEW_ENABLED
 
+//#define LCD_RTS_DEBUG
+
 #include <wstring.h>
 #include <stdio.h>
 #include <string.h>
@@ -302,7 +304,7 @@ static void RTS_line_to_filelist() {
       j = TEXTBYTELEN - 1;
     }
     strncpy(CardRecbuf.Cardshowfilename[num], card.longFilename, j);
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+        #if ENABLED(LCD_RTS_DEBUG)
           SERIAL_ECHO("inside rts_line_to_filelist");
           SERIAL_ECHOLN("");
         #endif
@@ -490,7 +492,7 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
   }
 
   // Print the received data to the serial monitor for debugging.
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)  
+  #if ENABLED(LCD_RTS_DEBUG)  
     SERIAL_ECHO("Received data from display: ");
     for (int i = 0; i < recnum; i++) {
       SERIAL_ECHO(databuf[i]);
@@ -511,7 +513,7 @@ void RTSSHOW::sendPacketAndReceiveResponse(uint16_t packetValue) {
     }
   } else {
     // Handle error or invalid response here.
-    #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+    #if ENABLED(LCD_RTS_DEBUG)
       SERIAL_ECHOLN("Error: Invalid response from display.");
     #endif
     return;
@@ -1206,7 +1208,7 @@ void RTSSHOW::RTS_HandleData(void)
     recdat.head[1] = FHTWO;
     return;
   }
-  #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
+  #if ENABLED(LCD_RTS_DEBUG)
     SERIAL_ECHO_MSG("\nCheckkey=", Checkkey, "recdat.data[0]=", recdat.data[0]);
   #endif
   switch(Checkkey)
@@ -1216,20 +1218,20 @@ void RTSSHOW::RTS_HandleData(void)
       if (recdat.data[0] == 1) {
         CardUpdate = true;
         CardRecbuf.recordcount = -1;
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          SERIAL_ECHOPGM("Working dir is: ");
-          SERIAL_ECHO(card.getWorkDirName());
-          SERIAL_ECHOLN("");
-        #endif
+        //#if ENABLED(LCD_RTS_DEBUG)
+        //  SERIAL_ECHOPGM("Working dir is: ");
+        //  SERIAL_ECHO(card.getWorkDirName());
+        //  SERIAL_ECHOLN("");
+        //#endif
         std::string currentdir;
         currentdir = card.getWorkDirName();
         if (card.getWorkDirName() != std::string("/")) {
         card.cdup();
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          SERIAL_ECHO("chroot done to:");
-          SERIAL_ECHO(card.getWorkDirName());
-          SERIAL_ECHOLN("");
-        #endif
+        //#if ENABLED(LCD_RTS_DEBUG)
+        //  SERIAL_ECHO("chroot done to:");
+        //  SERIAL_ECHO(card.getWorkDirName());
+        //  SERIAL_ECHOLN("");
+        //#endif
         }
 
         if (card.flag.mounted)
@@ -3108,23 +3110,23 @@ void RTSSHOW::RTS_HandleData(void)
 
     case XaxismoveKeyHomeOffset:
       waitway = 4;
-      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", ((float)recdat.data[0]) ); 
-        if (rec_dat_temp_last_x >= THRESHOLD_VALUE_X) {
-          SERIAL_ECHO_MSG("rec_dat_temp_last_x: ", rec_dat_temp_last_x);
-        }
-      #endif
+      //#if ENABLED(LCD_RTS_DEBUG)
+      //  SERIAL_ECHO_MSG("recdat.data[0] incoming: ", ((float)recdat.data[0]) ); 
+      //  if (rec_dat_temp_last_x >= THRESHOLD_VALUE_X) {
+      //    SERIAL_ECHO_MSG("rec_dat_temp_last_x: ", rec_dat_temp_last_x);
+      //  }
+      //#endif
 
       if (recdat.data[FIRST_ELEMENT_INDEX_X] >= THRESHOLD_VALUE_X) {
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_X]);
-        #endif
+        //#if ENABLED(LCD_RTS_DEBUG)
+        //  SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_X]);
+        //#endif
         recdat.data[FIRST_ELEMENT_INDEX_X] = rec_dat_temp_last_x;
       }      
       current_position[X_AXIS] = ((float)recdat.data[0]) / 10;
-      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)        
-        SERIAL_ECHO_MSG("current_position: ", current_position[X_AXIS]);           
-      #endif
+      //#if ENABLED(LCD_RTS_DEBUG)        
+      //  SERIAL_ECHO_MSG("current_position: ", current_position[X_AXIS]);           
+      //#endif
       rec_dat_temp_real_x = ((float)recdat.data[0]) / 10;
       rec_dat_temp_last_x = recdat.data[0];                              
       RTS_line_to_current(X_AXIS);
@@ -3138,16 +3140,16 @@ void RTSSHOW::RTS_HandleData(void)
 
     case YaxismoveKeyHomeOffset:
       waitway = 4;
-      #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-        SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
-        if (rec_dat_temp_last_y >= THRESHOLD_VALUE_Y) {
-          SERIAL_ECHO_MSG("rec_dat_temp_last_y: ", rec_dat_temp_last_y);
-        }
-      #endif
+      //#if ENABLED(LCD_RTS_DEBUG)
+      //  SERIAL_ECHO_MSG("recdat.data[0] incoming: ", recdat.data[0]); 
+      //  if (rec_dat_temp_last_y >= THRESHOLD_VALUE_Y) {
+      //    SERIAL_ECHO_MSG("rec_dat_temp_last_y: ", rec_dat_temp_last_y);
+      //  }
+      //#endif
       if (recdat.data[FIRST_ELEMENT_INDEX_Y] >= THRESHOLD_VALUE_Y) {
-        #if ENABLED(FILAMENT_RUNOUT_SENSOR_DEBUG)
-          SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_Y]);
-        #endif
+      //  #if ENABLED(LCD_RTS_DEBUG)
+      //    SERIAL_ECHO_MSG("recdat.data[0] inside 101: ", recdat.data[FIRST_ELEMENT_INDEX_Y]);
+      //  #endif
         recdat.data[FIRST_ELEMENT_INDEX_Y] = rec_dat_temp_last_y;
       }
       current_position[Y_AXIS] = ((float)recdat.data[0]) / 10;      
