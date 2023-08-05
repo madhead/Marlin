@@ -75,10 +75,11 @@
 #define MOTHERBOARD BOARD_CREALITY_V24S1_301F4
 //#define USER_STM32F103  1
 //#define MOTHERBOARD BOARD_CREALITY_V24S1_301
-
+//#define WATCHDOG_DURATION_8S
 //
 // Ender-3S1Pro touch display. Uses lcd_rts.cpp.
 //
+//#define SDCARD_EEPROM_EMULATION
 
 #if ENABLED(ENDER_3S1_PRO)
   #define E3S1PRO_RTS
@@ -122,6 +123,8 @@
       #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "abl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
@@ -132,6 +135,8 @@
       #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
@@ -174,6 +179,8 @@
       #define FIRMWARE_VERSION  "abl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "abl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "abl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "abl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
@@ -184,6 +191,8 @@
       #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
@@ -228,6 +237,8 @@
       #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10
@@ -272,6 +283,8 @@
       #define FIRMWARE_VERSION  "ubl5x5-v004-byTT"
     #elif GRID_MAX_POINTS_X == 7
       #define FIRMWARE_VERSION  "ubl7x7-v004-byTT"
+    #elif GRID_MAX_POINTS_X == 8
+      #define FIRMWARE_VERSION  "ubl8x8-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 9
       #define FIRMWARE_VERSION  "ubl9x9-v004-byTT"      
     #elif GRID_MAX_POINTS_X == 10

@@ -228,7 +228,6 @@ const uint16_t DGUS_VERSION = 0x000F;
 #define FILE19_TEXT_VP                     0x2172
 #define FILE20_TEXT_VP                     0x2186
 
-#define SELECT_FILE_TEXT_VP                0x219A
 #define PRINT_FILE_TEXT_VP                 0x21C0
 #define ABNORMAL_PAGE_TEXT_VP              0x21D4
 
