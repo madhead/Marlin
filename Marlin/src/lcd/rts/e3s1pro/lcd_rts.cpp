@@ -5,7 +5,7 @@
 // GCODE_PREVIEW requires some fixing..
 //#define GCODE_PREVIEW_ENABLED
 
-//#define LCD_RTS_DEBUG
+#define LCD_RTS_DEBUG
 
 #include <wstring.h>
 #include <stdio.h>
@@ -245,6 +245,8 @@ int8_t g_uiAutoPIDRuningDiff = 0;
 int16_t g_uiCurveDataCnt = 0;
 
 int16_t advance_k_set = 0;
+uint8_t lcd_rts_settings_version = 1;
+lcd_rts_settings_t lcd_rts_settings;
 
 /*************************************END***************************************/
 
@@ -254,6 +256,90 @@ inline void RTS_line_to_current(AxisEnum axis)
   {
     planner.buffer_line(current_position, MMM_TO_MMS(manual_feedrate_mm_m[(int8_t)axis]), active_extruder);
   }
+}
+
+void RTSSHOW::resetSettings() {
+  lcd_rts_settings.settings_size         = sizeof(lcd_rts_settings_t);
+  lcd_rts_settings.settings_version      = lcd_rts_settings_version;
+  lcd_rts_settings.display_standby       = true;
+  lcd_rts_settings.display_sound         = true;
+  lcd_rts_settings.display_volume        = 32;
+  lcd_rts_settings.standby_brightness    = 15;
+  lcd_rts_settings.screen_brightness     = 100;
+  lcd_rts_settings.standby_time_seconds  = 60;
+  lcd_rts_settings.screen_rotation       = 0;
+  lcd_rts_settings.bed_size_x = 235.00;
+  lcd_rts_settings.bed_size_x = 235.00;
+  lcd_rts_settings.x_min_pos = 0.00;
+  lcd_rts_settings.y_min_pos = 0.00;
+  lcd_rts_settings.x_max_pos = 235.00;
+  lcd_rts_settings.y_max_pos = 235.00;
+  lcd_rts_settings.grid_max_points_x = 5;
+  lcd_rts_settings.grid_max_points_y = 5;  
+  lcd_rts_settings.abl_probe_margin = 45.00;
+  lcd_rts_settings.ubl_probe_margin_l = 27.00;
+  lcd_rts_settings.ubl_probe_margin_r = 27.00;
+  lcd_rts_settings.ubl_probe_margin_f = 27.00;
+  lcd_rts_settings.ubl_probe_margin_b = 45.00;
+  SERIAL_ECHOLNPGM("------Reset lcd_rts_settings from lcd_rts.cpp!-------");  
+}
+
+void RTSSHOW::loadSettings(const char * const buff) {
+  memcpy(&lcd_rts_settings, buff, _MIN(sizeof(lcd_rts_settings), eeprom_data_size));
+  #if ENABLED(LCD_RTS_DEBUG)  
+    SERIAL_ECHOLNPGM("Saved settings:");
+    SERIAL_ECHOLNPGM("settings_size: ", lcd_rts_settings.settings_size);
+    SERIAL_ECHOLNPGM("settings_version: ", lcd_rts_settings.settings_version);
+    SERIAL_ECHOLNPGM("display_standby: ", lcd_rts_settings.display_standby);
+    SERIAL_ECHOLNPGM("display_sound: ", lcd_rts_settings.display_sound);
+    SERIAL_ECHOLNPGM("screen_rotation: ", lcd_rts_settings.screen_rotation);
+    SERIAL_ECHOLNPGM("display_volume: ", lcd_rts_settings.display_volume);
+    SERIAL_ECHOLNPGM("standby_brightness: ", lcd_rts_settings.standby_brightness);
+    SERIAL_ECHOLNPGM("screen_brightness: ", lcd_rts_settings.screen_brightness);
+    SERIAL_ECHOLNPGM("standby_time_seconds: ", lcd_rts_settings.standby_time_seconds); 
+    SERIAL_ECHOLNPGM("------------------");
+    SERIAL_ECHOLNPGM("bed_size_x:", lcd_rts_settings.bed_size_x);
+    SERIAL_ECHOLNPGM("x_min_pos:", lcd_rts_settings.x_min_pos);
+    SERIAL_ECHOLNPGM("y_min_pos:", lcd_rts_settings.y_min_pos);
+    SERIAL_ECHOLNPGM("x_max_pos:", lcd_rts_settings.x_max_pos);
+    SERIAL_ECHOLNPGM("y_max_pos:", lcd_rts_settings.y_max_pos);
+    SERIAL_ECHOLNPGM("grid_max_points_x:", lcd_rts_settings.grid_max_points_x);
+    SERIAL_ECHOLNPGM("grid_max_points_y:", lcd_rts_settings.grid_max_points_y);  
+    SERIAL_ECHOLNPGM("abl_probe_margin:", lcd_rts_settings.abl_probe_margin);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_l:", lcd_rts_settings.ubl_probe_margin_l);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_r:", lcd_rts_settings.ubl_probe_margin_r);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_f:", lcd_rts_settings.ubl_probe_margin_f);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_b:", lcd_rts_settings.ubl_probe_margin_b);
+  #endif
+}
+
+void RTSSHOW::saveSettings(char * const buff) {
+  memcpy(buff, &lcd_rts_settings, _MIN(sizeof(lcd_rts_settings), eeprom_data_size));
+  #if ENABLED(LCD_RTS_DEBUG)  
+    SERIAL_ECHOLNPGM("Saved settings:");
+    SERIAL_ECHOLNPGM("settings_size: ", lcd_rts_settings.settings_size);
+    SERIAL_ECHOLNPGM("settings_version: ", lcd_rts_settings.settings_version);
+    SERIAL_ECHOLNPGM("display_standby: ", lcd_rts_settings.display_standby);
+    SERIAL_ECHOLNPGM("display_sound: ", lcd_rts_settings.display_sound);
+    SERIAL_ECHOLNPGM("screen_rotation: ", lcd_rts_settings.screen_rotation);
+    SERIAL_ECHOLNPGM("display_volume: ", lcd_rts_settings.display_volume);
+    SERIAL_ECHOLNPGM("standby_brightness: ", lcd_rts_settings.standby_brightness);
+    SERIAL_ECHOLNPGM("screen_brightness: ", lcd_rts_settings.screen_brightness);
+    SERIAL_ECHOLNPGM("standby_time_seconds: ", lcd_rts_settings.standby_time_seconds);  
+    SERIAL_ECHOLNPGM("------------------");
+    SERIAL_ECHOLNPGM("bed_size_x:", lcd_rts_settings.bed_size_x);
+    SERIAL_ECHOLNPGM("x_min_pos:", lcd_rts_settings.x_min_pos);
+    SERIAL_ECHOLNPGM("y_min_pos:", lcd_rts_settings.y_min_pos);
+    SERIAL_ECHOLNPGM("x_max_pos:", lcd_rts_settings.x_max_pos);
+    SERIAL_ECHOLNPGM("y_max_pos:", lcd_rts_settings.y_max_pos);
+    SERIAL_ECHOLNPGM("grid_max_points_x:", lcd_rts_settings.grid_max_points_x);
+    SERIAL_ECHOLNPGM("grid_max_points_y:", lcd_rts_settings.grid_max_points_y);   
+    SERIAL_ECHOLNPGM("abl_probe_margin:", lcd_rts_settings.abl_probe_margin);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_l:", lcd_rts_settings.ubl_probe_margin_l);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_r:", lcd_rts_settings.ubl_probe_margin_r);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_f:", lcd_rts_settings.ubl_probe_margin_f);
+    SERIAL_ECHOLNPGM("ubl_probe_margin_b:", lcd_rts_settings.ubl_probe_margin_b);
+  #endif
 }
 
 RTSSHOW::RTSSHOW(void)

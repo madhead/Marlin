@@ -549,6 +549,32 @@ struct RecData2 {
   unsigned char reserv[4]; // Add the reserved field, as present in ResData2 (DB) struct
 };
 
+struct lcd_rts_settings_t { // use bit fields to save space, max 48 bytes
+size_t settings_size;
+uint8_t settings_version;
+bool display_standby;
+bool display_sound;
+int8_t screen_rotation;
+int16_t display_volume;
+uint8_t standby_brightness;
+uint8_t screen_brightness;
+int16_t standby_time_seconds;  
+float bed_size_x;
+float bed_size_y;
+float x_min_pos;
+float y_min_pos;
+float x_max_pos;
+float y_max_pos;
+uint8_t grid_max_points_x;
+uint8_t grid_max_points_y;
+uint8_t abl_probe_margin;
+uint8_t ubl_probe_margin_l;
+uint8_t ubl_probe_margin_r;
+uint8_t ubl_probe_margin_f;
+uint8_t ubl_probe_margin_b;
+};
+static constexpr size_t eeprom_data_size = 128;
+
 class RTSSHOW
 {
   public:
@@ -579,6 +605,9 @@ class RTSSHOW
       void RTS_HandleData_Laser(void);
       void RTS_SDcard_Stop_laser(void);
     #endif
+    static void saveSettings(char * const buff);
+    static void loadSettings(const char * const buff);
+    static void resetSettings();    
     String RTS_ReadTextField(uint16_t address);
     void sendPacketAndReceiveResponse(uint16_t packetValue);
     bool readDisplayVersion(uint8_t &guiVersion, uint8_t &osVersion);
@@ -822,7 +851,6 @@ extern uint32_t last_start_time;
 extern bool eeprom_save_flag;
 
 #define EEPROM_SAVE_LANGUAGE()      {if(eeprom_save_flag) { settings.save(); eeprom_save_flag = false; }}
-
 void Read_lcd_Register(unsigned char len, unsigned int addr);
 void Write_lcd_Register(unsigned int addr,unsigned char data);
 void lcd_eight_language(void);
@@ -860,6 +888,7 @@ extern uint8_t y_min_pos_eeprom;
 extern int8_t g_uiAutoPIDRuningDiff;
 extern int16_t g_uiCurveDataCnt;
 extern int leveling_running;
+extern lcd_rts_settings_t lcd_rts_settings;
 void AutoUIBedNozzleHeightCali(void);
 void LcdAutoUIMoveXYBlock(float _posX, float _posY);
 void LcdAutoUIMoveZBlock(float _posZ);
