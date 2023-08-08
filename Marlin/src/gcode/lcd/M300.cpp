@@ -38,25 +38,30 @@
  *
  *  S<frequency> - (Hz) The frequency of the tone. 0 for silence.
  *  P<duration>  - (ms) The duration of the tone.
+ *
+ * With SOUND_MENU_ITEM:
+ *  E<0|1>       - Mute or enable sound
  */
 void GcodeSuite::M300() {
 
-  #if DISABLED(E3S1PRO_RTS)
-    const uint16_t frequency = parser.ushortval('S', 260);
+  #if ENABLED(SOUND_MENU_ITEM)
+    if (parser.seen('E')) {
+      ui.sound_on = parser.value_bool();
+      return;
+    }
   #endif
 
-  uint16_t duration = parser.ushortval('P', 1000);
-
-  // Limits the tone duration to 0-5 seconds.
-  NOMORE(duration, 5000U);
-  
   #if ENABLED(E3S1PRO_RTS)
     rtscheck.RTS_SndData(StartSoundSet, SoundAddr);
   #else
-    uint16_t const frequency = parser.ushortval('S', 260);
-    BUZZ(duration, frequency);
+  const uint16_t frequency = parser.ushortval('S', 260);
+  uint16_t duration = parser.ushortval('P', 1000);
   #endif
-  
+
+  // Limits the tone duration to 0-5 seconds.
+  NOMORE(duration, 5000U);
+
+  BUZZ(duration, frequency);
 }
 
 #endif // HAS_SOUND
