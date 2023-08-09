@@ -1674,7 +1674,7 @@ void MarlinSettings::postprocess() {
     {
       _FIELD_TEST(lcd_rts_settings);
       char lcd_rts_settings[eeprom_data_size] = { 0 };
-      rtscheck.saveSettings(lcd_rts_settings);
+      saveSettings(lcd_rts_settings);
       EEPROM_WRITE(lcd_rts_settings);
       SERIAL_ECHOLNPGM("lcd_rts_settings write size past:", sizeof(lcd_rts_settings));
     }
@@ -2773,7 +2773,7 @@ void MarlinSettings::postprocess() {
         _FIELD_TEST(lcd_rts_settings);
         EEPROM_READ(lcd_rts_settings);
         SERIAL_ECHOLNPGM("lcd_rts_size read size past:", sizeof(lcd_rts_settings));
-        if (!validating) rtscheck.loadSettings(lcd_rts_settings);
+        if (!validating) loadSettings(lcd_rts_settings);
       }
       #endif
 
@@ -3307,7 +3307,7 @@ void MarlinSettings::reset() {
   #endif
 
   TERN_(DWIN_CREALITY_LCD_JYERSUI, jyersDWIN.resetSettings());
-  TERN_(E3S1PRO_RTS, rtscheck.resetSettings());  
+  TERN_(E3S1PRO_RTS, resetSettings());  
 
   //
   // Case Light Brightness
