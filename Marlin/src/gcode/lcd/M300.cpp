@@ -56,12 +56,13 @@ void GcodeSuite::M300() {
   #else
   const uint16_t frequency = parser.ushortval('S', 260);
   uint16_t duration = parser.ushortval('P', 1000);
-  #endif
 
   // Limits the tone duration to 0-5 seconds.
   NOMORE(duration, 5000U);
 
   BUZZ(duration, frequency);
+  #endif
+
 }
 
 #endif // HAS_SOUND

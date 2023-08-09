@@ -211,14 +211,13 @@ static const uint32_t   _DMA[] PROGMEM = DEFAULT_MAX_ACCELERATION;
 static const float     _DASU[] PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT;
 static const feedRate_t _DMF[] PROGMEM = DEFAULT_MAX_FEEDRATE;
 
-void printZValues(float z_values[][10], size_t rows, size_t cols) {
+void printZValues(float z_values[][GRID_MAX_POINTS_X], size_t rows, size_t cols) {
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
                 SERIAL_ECHOLNPGM("z_values[", i, "][", j, "]: ", z_values[i][j]);     
         }
     }
 }
-
 
 /**
  * Current EEPROM Layout
@@ -486,11 +485,11 @@ typedef struct SettingsDataStruct {
   // HAS_TRINAMIC_CONFIG
   //
   #if HAS_TRINAMIC_CONFIG
-  per_stepper_uint16_t tmc_stepper_current;             // M906 X Y Z...
-  per_stepper_uint32_t tmc_hybrid_threshold;            // M913 X Y Z...
-  mot_stepper_int16_t tmc_sgt;                          // M914 X Y Z...
-  per_stepper_bool_t tmc_stealth_enabled;               // M569 X Y Z...
-#endif
+    per_stepper_uint16_t tmc_stepper_current;             // M906 X Y Z...
+    per_stepper_uint32_t tmc_hybrid_threshold;            // M913 X Y Z...
+    mot_stepper_int16_t tmc_sgt;                          // M914 X Y Z...
+    per_stepper_bool_t tmc_stealth_enabled;               // M569 X Y Z...
+  #endif
   //
   // LIN_ADVANCE
   //
