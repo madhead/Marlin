@@ -7,7 +7,7 @@
 
 #define LCD_RTS_DEBUG
 
-#include <wstring.h>
+#include <WString.h>
 #include <stdio.h>
 #include <string.h>
 #include <Arduino.h>

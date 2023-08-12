@@ -2,7 +2,7 @@
 #define LCD_RTS_H
 #include "../../../sd/cardreader.h"
 #include "string.h"
-#include <arduino.h>
+#include <Arduino.h>
 #include "../../../libs/BL24CXX.h"
 #include "../../../inc/MarlinConfigPre.h"
 #include "../../../inc/MarlinConfig.h"
